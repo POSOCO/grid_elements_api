@@ -103,22 +103,42 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements` (
 
 
 -- -----------------------------------------------------
+-- Table `wrldc_grid_elements`.`substations`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`substations` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NULL,
+  `description` VARCHAR(300) NULL,
+  `voltages_id` INT NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `fk_elements_voltages1_idx` (`voltages_id` ASC),
+  CONSTRAINT `fk_elements_voltages10`
+  FOREIGN KEY (`voltages_id`)
+  REFERENCES `wrldc_grid_elements`.`voltages` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+  ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `wrldc_grid_elements`.`elements_has_substations`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements_has_substations` (
   `elements_id` INT NOT NULL,
   `substations_id` INT NOT NULL,
   PRIMARY KEY (`elements_id`, `substations_id`),
-  INDEX `fk_elements_has_elements_elements2_idx` (`substations_id` ASC),
   INDEX `fk_elements_has_elements_elements1_idx` (`elements_id` ASC),
+  INDEX `fk_elements_has_substations_substations1_idx` (`substations_id` ASC),
   CONSTRAINT `fk_elements_has_elements_elements1`
   FOREIGN KEY (`elements_id`)
   REFERENCES `wrldc_grid_elements`.`elements` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_elements_has_elements_elements2`
+  CONSTRAINT `fk_elements_has_substations_substations1`
   FOREIGN KEY (`substations_id`)
-  REFERENCES `wrldc_grid_elements`.`elements` (`id`)
+  REFERENCES `wrldc_grid_elements`.`substations` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
   ENGINE = InnoDB;
@@ -205,10 +225,10 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`conductor_types` (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`lines` (
   `id` INT NOT NULL AUTO_INCREMENT,
+  `elements_id` INT NOT NULL,
+  `conductor_types_id` INT NOT NULL,
   `number` INT NULL COMMENT 'unique (element_id, number)',
   `line_length` INT NULL,
-  `conductor_types_id` INT NOT NULL,
-  `elements_id` INT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_lines_conductor_types1_idx` (`conductor_types_id` ASC),
   INDEX `fk_lines_elements1_idx` (`elements_id` ASC),
@@ -230,10 +250,10 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`lines` (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`line_reactors` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `mvar` INT NULL,
-  `is_switchable` VARCHAR(1) NULL,
   `elements_id` INT NOT NULL,
   `lines_id` INT NOT NULL,
+  `mvar` INT NULL,
+  `is_switchable` VARCHAR(1) NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_line_reactors_elements1_idx` (`elements_id` ASC),
   INDEX `fk_line_reactors_lines1_idx` (`lines_id` ASC),
