@@ -17,6 +17,9 @@ An API for grid elements with apps using the API
 
 4. We will fill in the element_id, line number, voltage level, mvar, is_switchable values from this excel table to the line reactors table
 
+##Todos
+1. Add substation_id attribute to line reactor table
+
 ##Links
 1. Google Docs page ---> https://docs.google.com/document/d/1xqxND1KHwLpGc3jCcYlq9GWiVnqFbHW_GvWrCmRioVY/edit?usp=sharing
 2. Github page ---> https://github.com/POSOCO/grid_elements_api 
