@@ -1,6 +1,22 @@
 # grid_elements_api
 An API for grid elements with apps using the API
 
+## Going from Excel to DB
+
+##For general element information
+
+1. The table columns are
+
+###For 400 KV lines
+
+1. The columns are End-1 S/S, End-2 S/S, Id, Line Owner, End-1 Owner, End-2 Owner, Km, Conductor Type, SIL, End1 LR MVAR, End1 LR is_switchable, End2 LR MVAR, End2 LR is_switchable
+
+2. For End Substations, Line owners, conductor types we will query substations table for the name and get the foreign key and if not present, we will create one and use that id for foreign key
+
+3. The substation owners can be recorded later while creating the substations table
+
+4. We will fill in the element_id, line number, voltage level, mvar, is_switchable values from this excel table to the line reactors table
+
 ##Links
 1. Google Docs page ---> https://docs.google.com/document/d/1xqxND1KHwLpGc3jCcYlq9GWiVnqFbHW_GvWrCmRioVY/edit?usp=sharing
 2. Github page ---> https://github.com/POSOCO/grid_elements_api 
