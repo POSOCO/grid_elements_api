@@ -5,7 +5,7 @@ An API for grid elements with apps using the API
 
 ##For general element information
 
-1. The table columns are
+1. The table columns are id, name, description, sil, stability_limit, thermal_limit, voltages_id, elements_type_id, created-at, updated_at
 
 ###For 400 KV lines
 
