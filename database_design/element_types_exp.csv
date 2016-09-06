@@ -1,0 +1,17 @@
+id,type
+1,Bus
+2,Bus Capacitor
+3,FSC
+4,FACTS
+5,Generator
+6,HVDC Station
+7,ICT
+8,Line
+9,Bus Reactor
+10,Line Reactor
+11,TCSC
+12,Bus Coupler
+13,SVC
+14,Bay
+15,Station Transformer
+16,Substation

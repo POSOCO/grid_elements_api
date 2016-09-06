@@ -1,0 +1,30 @@
+{
+  "name": "grid_elements",
+  "version": "1.0.0",
+  "description": "Server for WRLDC Grid Elements",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sudhir",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.0.0-rc.5",
+    "bcryptjs": "^2.3.0",
+    "body-parser": "latest",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.13.4",
+    "express-session": "^1.13.0",
+    "morgan": "^1.7.0",
+    "mysql": "^2.10.2",
+    "ejs": "latest",
+    "serve-favicon": "latest",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
+  }
+}

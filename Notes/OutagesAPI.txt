@@ -1,0 +1,38 @@
+Get outage reasons list
+http://103.7.130.119:8181/json.ashx?r=reas&e=L&sd=F
+
+Get the list of owners
+http://103.7.130.119:8181/json.ashx?r=owns
+
+Get the types of elements
+http://103.7.130.119:8181/json.ashx?r=etypes
+
+Get the list of voltage levels
+http://103.7.130.119:8181/json.ashx?r=vols&e=B
+
+Get the list of substations for a element type, owner and voltage level
+http://103.7.130.119:8181/json.ashx?r=sub&e=L&v=400%20kV&o=-1
+
+Get list of elements of a particular type (like bus line etc), voltage and owner id and substation id
+http://103.7.130.119:8181/json.ashx?r=ele&e=L&v=400%20kV&o=-1&s=-1
+
+Aim - Find the requesting entities automatically and place them in the requesting list in the UI
+************************************************************************************************
+
+For Line - Find the line owner from "elements" table. find the substations associated with line and find that substation ids from "elements_substations" table. Now find the owners of substations and the owner ids from the "substations" table
+
+For Generator - Find the generator id from the "generator_units" or "generator_units_new" table and using that generator id, find the generator owner id from the "generators" table and add to requesting entities list
+
+For ICT - Find the owner id from "???" table, find the substation of element from "???" table and find the owner of that substation from "substations" table and add it to the requesting entities list
+
+For other element types - Find the owner id from "???" table, find the substation of element from "???" table and find the owner of that substation from "substations" table and add it to the requesting entities list
+
+Aim - Add outages to the outage database through post request
+*************************************************************
+Content type is "Content-Type:application/x-www-form-urlencoded" and the cookie is also needed "Cookie:11417D95742F2F0A6BFACDEA6CD4A88BDEB4B1D922443919DDA9298AF116F37C76F5CD34E5826619C235854909C546DDD2C52BF25FCF106D83B3BB35AF5531C0C1F7350F45769F5E84DF5E66B22032C10B8B4570314F65D231FFFB2E797FC27C8BD9BD50C06288E16ACDECE15284C9F44C61E62F4C49EB9BAF715E56255CA080"
+in the request header
+
+The form fields required are -
+own=-1&etype=L&vol=400 kV&substn=-1&element=3191&typeOfOutage=F&txtStartDate=07-07-2016&txtStartTime=21:25&txtExpDate=&txtExpTime=&reason=84&txtEndDate=&txtEndTime=&txtClosingCode=&txtComments=sudhir test&element_id=3191&devType=L&outDate=07-07-2016&outTime=21:25&expDate=&expTime=&reason=84&inDate=&inTime=&comments=sudhir test2&cCode=
+
+The post request is sent to http://103.7.130.119:8181/AddOutagesAll.aspx

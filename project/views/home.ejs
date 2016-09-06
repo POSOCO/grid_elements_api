@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WRLDC Grid Elements</title>
+    <link rel="stylesheet" type="text/css" href="./home.css">
+    <link rel="shortcut icon" type="image/ico"
+          href="https://raw.githubusercontent.com/POSOCO/grid_elements_api/gh-pages/favicon.ico"/>
+</head>
+<body>
+<div class="wrapper">
+    <h3>Upload the states csv file here...</h3>
+    <input type="file" id="StatesFileInput"></td>
+    <br><br>
+    <button id="statesButton" onclick="createStates()" class="generate_button">Feed States</button>
+    <br><br>
+    <button id="regionsButton" onclick="createRegions()" class="generate_button">Feed Regions</button>
+    <br><br>
+    <button id="regionsButton" onclick="createVoltages()" class="generate_button">Feed Voltages</button>
+    <br><br>
+    <button id="elementTypesButton" onclick="createElementTypes()" class="generate_button">Feed Element Types</button>
+    <br><br>
+    <button id="conductorTypesButton" onclick="createConductorTypes()" class="generate_button">Feed Conductor Types</button>
+    <br><br>
+    <div class="hidingClass">
+        <div id="console" style="border: 1px solid black;width: 95%;height: 300px;overflow: scroll;">
+        </div>
+        <button onclick="clearConsole()">Clear Text Area</button>
+    </div>
+    <div class="push"></div>
+</div>
+<div id="footer" class="footer"
+     style='background-color:#217346;color:#EEEEEE;width:100%;padding-left:1em;'>
+    <span>The Code for this WebApp is hosted at </span><a
+            href="https://github.com/POSOCO/grid_elements_api"
+            style="color:#dddddd;" target="_blank">https://github.com/POSOCO/grid_elements_api</a>
+</div>
+<script src="./libs/jquery/jquery-1.7.min.js"></script>
+<script src="csvToArray.js"></script>
+<script src="consoleFunctions.js"></script>
+<script src="home.js"></script>
+</body>
+</html>
