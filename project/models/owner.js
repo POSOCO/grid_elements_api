@@ -1,7 +1,7 @@
 var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
-var tableName  = "regions";
-var tableAttributes = ["id", "name"];
+var tableName  = "owners";
+var tableAttributes = ["id", "name", "metadata", "region_id"];
 //id is primary key
 //name is unique
 
@@ -19,7 +19,8 @@ exports.getByName = function (name, done) {
     });
 };
 
-exports.create = function (names, done) {
+exports.forceCreate = function (names, done) {
+    //force creation can be done by http://stackoverflow.com/questions/1361340/how-to-insert-if-not-exists-in-mysql
     if (!(names.constructor === Array)) {
         names = [[names]];
     }

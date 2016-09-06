@@ -49,7 +49,7 @@ app.use('/api/element_types', require('./project/controllers/element_type'));
 app.use('/api/regions', require('./project/controllers/region'));
 app.use('/api/states', require('./project/controllers/state'));
 app.use('/api/conductor_types', require('./project/controllers/conductor_type'));
-app.use('/api/code_times', require('./project/controllers/code_time'));
+app.use('/api/owners', require('./project/controllers/owner'));
 app.use('/api/optional_codes', require('./project/controllers/optional_code'));
 app.use('/api/code_requests', require('./project/controllers/code_request'));
 app.use('/', require('./project/controllers/general'));

@@ -179,8 +179,7 @@ function createRegions() {
                     };
                 })(region)
             }
-        )
-        ;
+        );
     }
 }
 
