@@ -1,10 +1,4 @@
 //Handle each row
-//If region id = null reject
-//Get the id of the region from regions table
-//If region not present create a region and get the id
-//Now insert the row data with the region id obtained
-//done :-)
-
 function createOwners() {
     for (var i = 1; i < 1000; i++) {
         var ownerName = sReader.statesArrays[0][i][1];
@@ -30,7 +24,12 @@ function forceCreateAnOwner(ownerName, metadata, regionName, callback) {
             if (data["Error"]) {
                 WriteLineConsole("Owner " + ownerName + "couldn't be inserted, Error: " + JSON.stringify(data.Error));
             } else {
-                WriteLineConsole("The ownerName " + ownerName + " is created :-)");
+                console.log(data);
+                if(data.affectedRows > 0){
+                    WriteLineConsole("The owner " + ownerName + " is created :-)");
+                } else{
+                    WriteLineConsole("The owner " + ownerName + " is not created :-(");
+                }
             }
         };
     })(ownerName);

@@ -43,3 +43,19 @@ exports.createSQLGetString = function (tableName, getArgNames, whereArgNames, wh
     //console.log("SQLQUERYSTRING IS " + SQLQueryString);
     return SQLQueryString;
 };
+
+exports.createSQLReplaceString = function (tableName, setArgNames) {
+    var SQLQueryString = 'INSERT INTO ' + tableName + ' (' + setArgNames.join(',') + ') VALUES';
+    SQLQueryString += " (" + ArrayHelper.createArrayFromSingleElement('?', setArgNames.length).join(',') + ") ";
+    var whereArgExpressions = new Array(setArgNames.length);
+    if (setArgNames.length > 0) {
+        for (var i = 0; i < setArgNames.length; i++) {
+            whereArgExpressions[i] = setArgNames[i] + ' = VALUES(' + setArgNames[i] + ')';
+        }
+    }
+    SQLQueryString += "ON DUPLICATE KEY UPDATE ";
+    SQLQueryString += whereArgExpressions.join(',');
+    SQLQueryString += ";";
+    console.log("SQLReplace STRING IS " + SQLQueryString);
+    return SQLQueryString;
+};

@@ -15,4 +15,12 @@ describe('Region Model', function () {
             }
         });
     });
+
+    it('should get the Region id on replace', function () {
+        Region.replace("WR",function (err, affectedRows) {
+            console.log("inserted id after replace operation is " + insertId);
+            expect(err).to.equal(null);
+            expect(affectedRows).to.equal(1);
+        });
+    });
 });

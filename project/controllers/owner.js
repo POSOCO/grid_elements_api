@@ -22,14 +22,15 @@ router.get('/get_by_name', function (req, res, next) {
 });
 
 router.post('/force_create', function (req, res, next) {
-    var names = req.body["name"];
-    //console.log("States create post request body object is " + JSON.stringify(req.body));
-    //console.log("States name is " + names);
-    Owner.forceCreate(names, function (err, insertedId) {
+    var name = req.body["name"];
+    var metadata = req.body["metadata"];
+    var regionName = req.body["region_name"];
+    console.log("OWNERS force create POST request body object is " + JSON.stringify(req.body));
+    Owner.forceCreate(name, metadata, regionName, function (err, affectedRows) {
         if (err) {
             return next(err);
         }
-        res.json({'ownerId': insertedId});
+        res.json({'affectedRows': affectedRows});
     });
 });
 

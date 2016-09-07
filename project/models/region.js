@@ -1,6 +1,6 @@
 var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
-var tableName  = "regions";
+var tableName = "regions";
 var tableAttributes = ["id", "name"];
 //id is primary key
 //name is unique
@@ -30,5 +30,13 @@ exports.create = function (names, done) {
     db.get().query(createdSQL['SQLQueryString'], createdSQL['SQLQueryValues'], function (err, result) {
         if (err) return done(err);
         done(null, result.insertId);
+    });
+};
+
+exports.replace = function (name, done) {
+    db.get().query(SQLHelper.createSQLReplaceString(tableName, ["name"]), [name], function (err, result) {
+        if (err) return done(err);
+        //console.log("RESULT FROM REGION REPLACE IS " + JSON.stringify(result));
+        done(null, result.affectedRows);
     });
 };
