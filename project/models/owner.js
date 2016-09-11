@@ -33,7 +33,7 @@ var forceCreate = function (name, metadata, regionName, done) {
             var argNames = [tableAttributes[1], tableAttributes[2], tableAttributes[3]];
             var values = [name, metadata, regionId];
             var createdSQL = SQLHelper.createSQLReplaceString(tableName, argNames);
-            console.log("OWNERS replace query is " + createdSQL);
+            //console.log("OWNERS replace query is " + createdSQL);
             db.get().query(createdSQL, values, function (err, result) {
                 if (err) return done(err);
                 done(null, result.affectedRows);

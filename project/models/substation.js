@@ -1,7 +1,8 @@
 var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
-var tableName = "regions";
-var tableAttributes = ["id", "name"];
+
+var tableName  = "substations";
+var tableAttributes = ["id", "elements_id"];
 //id is primary key
 //name is unique
 
@@ -12,13 +13,6 @@ exports.getAll = function (done) {
     })
 };
 
-exports.getByName = function (name, done) {
-    db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], ['name'], ['=']), [name], function (err, rows) {
-        if (err) return done(err);
-        done(null, rows);
-    });
-};
-
 exports.create = function (names, done) {
     if (!(names.constructor === Array)) {
         names = [[names]];
@@ -26,17 +20,9 @@ exports.create = function (names, done) {
     var argNames = [tableAttributes[1]];
     var values = [names];
     var createdSQL = SQLHelper.createSQLInsertString(tableName, argNames, values);
-    //console.log("regions insert query is " + JSON.stringify(createdSQL));
+    //console.log("conductor_types insert query is " + JSON.stringify(createdSQL));
     db.get().query(createdSQL['SQLQueryString'], createdSQL['SQLQueryValues'], function (err, result) {
         if (err) return done(err);
-        done(null, result.insertId);
-    });
-};
-
-exports.replace = function (name, done) {
-    db.get().query(SQLHelper.createSQLInsertIgnoreString(tableName, ["name"], ["name"]), [name], function (err, result) {
-        if (err) return done(err);
-        //console.log("RESULT FROM REGION REPLACE IS " + JSON.stringify(result));
         done(null, result.affectedRows);
     });
 };

@@ -25,7 +25,7 @@ router.post('/', function (req, res, next) {
     var names = req.body["name"];
     //console.log("States create post request body object is " + JSON.stringify(req.body));
     //console.log("States name is " + names);
-    Region.create(names, function (err, numberOfRowsInserted) {
+    Region.replace(names, function (err, numberOfRowsInserted) {
         if (err) {
             return next(err);
         }
