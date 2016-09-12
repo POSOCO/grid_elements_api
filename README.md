@@ -4,7 +4,6 @@ An API for grid elements with apps using the API
 ## Going from Excel to DB
 
 ##For general element information
-
 1. The table columns are id, name, description, sil, stability_limit, thermal_limit, voltages_id, elements_type_id, created-at, updated_at
 
 ###For 400 KV lines
@@ -16,6 +15,13 @@ An API for grid elements with apps using the API
 3. The substation owners can be recorded later while creating the substations table
 
 4. We will fill in the element_id, line number, voltage level, mvar, is_switchable values from this excel table to the line reactors table
+
+###Important Points
+1. Use the statement `SET default_storage_engine=InnoDB;` in the creation sql so that all tables have the same engine
+
+2. A short guide to use sql variables in statements - [https://www.safaribooksonline.com/library/view/mysql-cookbook-2nd/059652708X/ch01s27.html](https://www.safaribooksonline.com/library/view/mysql-cookbook-2nd/059652708X/ch01s27.html)
+
+3. Use `multipleStatements: true` in the mysql connection arguments to execute multiple statements
 
 ##Todos
 1. Add end substation_id attribute to line reactor table -- done

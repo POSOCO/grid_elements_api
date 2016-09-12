@@ -3,7 +3,7 @@
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
-
+SET default_storage_engine=InnoDB;
 -- -----------------------------------------------------
 -- Schema wrldc_grid_elements
 -- -----------------------------------------------------
@@ -48,18 +48,8 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`owners` (
   CONSTRAINT `fk_owners_regions`
   FOREIGN KEY (`regions_id`)
   REFERENCES `wrldc_grid_elements`.`regions` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION);
-
-
--- -----------------------------------------------------
--- Table `wrldc_grid_elements`.`voltages`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`voltages` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `level` VARCHAR(30) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`level` ASC));
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE);
 
 
 -- -----------------------------------------------------
@@ -70,6 +60,16 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`element_types` (
   `type` VARCHAR(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`type` ASC));
+
+
+-- -----------------------------------------------------
+-- Table `wrldc_grid_elements`.`voltages`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`voltages` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `level` VARCHAR(30) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `name_UNIQUE` (`level` ASC));
 
 
 -- -----------------------------------------------------
@@ -84,21 +84,22 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements` (
   `thermal_limit` INT NULL,
   `element_types_id` INT NOT NULL,
   `voltages_id` INT NOT NULL,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_elements_voltages1_idx` (`voltages_id` ASC),
   INDEX `fk_elements_element_types1_idx` (`element_types_id` ASC),
-  CONSTRAINT `fk_elements_voltages1`
-  FOREIGN KEY (`voltages_id`)
-  REFERENCES `wrldc_grid_elements`.`voltages` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC, `element_types_id` ASC, `voltages_id` ASC),
+  INDEX `fk_elements_voltages1_idx` (`voltages_id` ASC),
   CONSTRAINT `fk_elements_element_types1`
   FOREIGN KEY (`element_types_id`)
   REFERENCES `wrldc_grid_elements`.`element_types` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_elements_voltages1`
+  FOREIGN KEY (`voltages_id`)
+  REFERENCES `wrldc_grid_elements`.`voltages` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
@@ -107,18 +108,15 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements` (
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`substations` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NULL,
-  `description` VARCHAR(300) NULL,
-  `voltages_id` INT NOT NULL,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `elements_id` INT NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_elements_voltages1_idx` (`voltages_id` ASC),
-  CONSTRAINT `fk_elements_voltages10`
-  FOREIGN KEY (`voltages_id`)
-  REFERENCES `wrldc_grid_elements`.`voltages` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  INDEX `fk_substations_elements1_idx` (`elements_id` ASC),
+  UNIQUE INDEX `elements_id_UNIQUE` (`elements_id` ASC),
+  CONSTRAINT `fk_substations_elements1`
+  FOREIGN KEY (`elements_id`)
+  REFERENCES `wrldc_grid_elements`.`elements` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
@@ -134,13 +132,13 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements_has_substations` (
   CONSTRAINT `fk_elements_has_elements_elements1`
   FOREIGN KEY (`elements_id`)
   REFERENCES `wrldc_grid_elements`.`elements` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_elements_has_substations_substations1`
   FOREIGN KEY (`substations_id`)
   REFERENCES `wrldc_grid_elements`.`substations` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
@@ -156,13 +154,13 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements_has_owners` (
   CONSTRAINT `fk_elements_has_owners_elements1`
   FOREIGN KEY (`elements_id`)
   REFERENCES `wrldc_grid_elements`.`elements` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_elements_has_owners_owners1`
   FOREIGN KEY (`owners_id`)
   REFERENCES `wrldc_grid_elements`.`owners` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
@@ -178,13 +176,13 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements_has_states` (
   CONSTRAINT `fk_elements_has_states_elements1`
   FOREIGN KEY (`elements_id`)
   REFERENCES `wrldc_grid_elements`.`elements` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_elements_has_states_states1`
   FOREIGN KEY (`states_id`)
   REFERENCES `wrldc_grid_elements`.`states` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
@@ -200,13 +198,13 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`elements_has_regions` (
   CONSTRAINT `fk_elements_has_regions_elements1`
   FOREIGN KEY (`elements_id`)
   REFERENCES `wrldc_grid_elements`.`elements` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_elements_has_regions_regions1`
   FOREIGN KEY (`regions_id`)
   REFERENCES `wrldc_grid_elements`.`regions` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
@@ -235,13 +233,13 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`lines` (
   CONSTRAINT `fk_lines_conductor_types1`
   FOREIGN KEY (`conductor_types_id`)
   REFERENCES `wrldc_grid_elements`.`conductor_types` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_lines_elements1`
   FOREIGN KEY (`elements_id`)
   REFERENCES `wrldc_grid_elements`.`elements` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
@@ -260,13 +258,13 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`line_reactors` (
   CONSTRAINT `fk_line_reactors_elements1`
   FOREIGN KEY (`elements_id`)
   REFERENCES `wrldc_grid_elements`.`elements` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_line_reactors_lines1`
   FOREIGN KEY (`lines_id`)
   REFERENCES `wrldc_grid_elements`.`lines` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
   ENGINE = InnoDB;
 
 
