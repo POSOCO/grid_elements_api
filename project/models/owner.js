@@ -6,6 +6,9 @@ var tableAttributes = ["id", "name", "metadata", "regions_id"];
 //id is primary key
 //name is unique
 
+exports.tableColumnNames = tableAttributes;
+exports.tableName = tableName;
+
 var getAll = function (done) {
     db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [], []), function (err, rows) {
         if (err) return done(err);

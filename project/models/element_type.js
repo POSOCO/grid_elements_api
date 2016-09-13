@@ -4,6 +4,8 @@ var tableName  = "element_types";
 var tableAttributes = ["id", "type"];
 //id is primary key
 //type is unique
+exports.tableColumnNames = tableAttributes;
+exports.tableName = tableName;
 
 exports.getAll = function (done) {
     db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [], []), function (err, rows) {
