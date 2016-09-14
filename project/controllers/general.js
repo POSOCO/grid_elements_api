@@ -6,6 +6,9 @@ router.get('/', function (req, res) {
 });
 
 router.get('/home', function (req, res) {
+    //just for testing
+    //require('../models/substation').create("sudrr",null);
+
     res.render('home', {user: req.user});
 });
 

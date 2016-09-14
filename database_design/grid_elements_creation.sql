@@ -4,6 +4,7 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 SET default_storage_engine=InnoDB;
+
 -- -----------------------------------------------------
 -- Schema wrldc_grid_elements
 -- -----------------------------------------------------
@@ -227,6 +228,7 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`lines` (
   `conductor_types_id` INT NOT NULL,
   `number` INT NULL COMMENT 'unique (element_id, number)',
   `line_length` INT NULL,
+  `noloadmvar` VARCHAR(10) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   INDEX `fk_lines_conductor_types1_idx` (`conductor_types_id` ASC),
   INDEX `fk_lines_elements1_idx` (`elements_id` ASC),

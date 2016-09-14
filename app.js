@@ -44,14 +44,13 @@ app.use(favicon(__dirname + '/project/public/img/favicon.ico'));
 //app.use('/', require('./project/controllers/auth'));
 
 app.use('/api/voltages', require('./project/controllers/voltage'));
-app.use('/api/rldcs', require('./project/controllers/rldc'));
 app.use('/api/element_types', require('./project/controllers/element_type'));
 app.use('/api/regions', require('./project/controllers/region'));
 app.use('/api/states', require('./project/controllers/state'));
 app.use('/api/conductor_types', require('./project/controllers/conductor_type'));
 app.use('/api/owners', require('./project/controllers/owner'));
-app.use('/api/optional_codes', require('./project/controllers/optional_code'));
-app.use('/api/code_requests', require('./project/controllers/code_request'));
+app.use('/api/substations', require('./project/controllers/substation'));
+app.use('/api/lines', require('./project/controllers/lines'));
 app.use('/', require('./project/controllers/general'));
 
 
@@ -61,6 +60,7 @@ app.use(function (req, res, next) {
     err.status = 404;
     next(err);
 });
+/*
 
 // error handlers
 //CHECK OUT ERROR HANDLERS HERE https://derickbailey.com/2014/09/06/proper-error-handling-in-expressjs-route-handlers/
@@ -87,6 +87,7 @@ app.use(function (err, req, res, next) {
         error: err
     });
 });
+*/
 
 // Connect to MySQL on start
 db.connect(db.MODE_PRODUCTION, function (err) {

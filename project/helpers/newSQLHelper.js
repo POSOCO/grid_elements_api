@@ -88,10 +88,10 @@ var createSQLReplaceStatementString = function (tableName, setArgNames, inputVar
  * @param outputVarName
  * @returns {string}
  */
-var createSQLInsertIgnoreStatementString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName) {
+var createSQLInsertIgnoreStatementString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName, idFetchArgNames, idFetchArgVars) {
     var space = ' ';
     var delimiter = ';';
-    var SQLQueryString = 'INSERT INTO' + space + tableName + +space + '(' + setArgNames.join(',') + ')' + space + 'VALUES' + space;
+    var SQLQueryString = 'INSERT INTO' + space + tableName + space + '(' + setArgNames.join(',') + ')' + space + 'VALUES' + space;
     SQLQueryString += '(' + inputVars.join(',') + ')' + space;
     var updateExpressions = new Array(setArgNames.length);
     SQLQueryString += "ON DUPLICATE KEY UPDATE" + space;
@@ -101,11 +101,15 @@ var createSQLInsertIgnoreStatementString = function (tableName, setArgNames, inp
         }
     }
     SQLQueryString += updateExpressions.join(',');
+    if (idFetchArgNames == null) {
+        idFetchArgNames = setArgNames;
+        idFetchArgVars = inputVars;
+    }
     if (idColumnName != null && idColumnName.trim() != '' && outputVarName != null && outputVarName.trim() != '' && outputVarName[0] == '@') {
         SQLQueryString += delimiter;
         //console.log("SQLReplaceStatement STRING IS " + SQLQueryString);
         SQLQueryString += "SET" + space + outputVarName + space + "= (";
-        SQLQueryString += createSQLGetStatementString(tableName, [idColumnName], setArgNames, ArrayHelper.createArrayFromSingleElement("=", setArgNames.length), inputVars);
+        SQLQueryString += createSQLGetStatementString(tableName, [idColumnName], idFetchArgNames, ArrayHelper.createArrayFromSingleElement("=", idFetchArgNames.length), idFetchArgVars);
         SQLQueryString += ")";
     }
     return SQLQueryString;
