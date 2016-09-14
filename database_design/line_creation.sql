@@ -38,7 +38,7 @@ SET @voltageid = (SELECT id
                   WHERE level = @level);
 
 -- Insert the element and get the id
-INSERT INTO elements (name, element_types_id, voltages_id) VALUES (@name, @elementtypeid, @voltageid, @sil)
+INSERT INTO elements (name, element_types_id, voltages_id, sil) VALUES (@name, @elementtypeid, @voltageid, @sil)
 ON DUPLICATE KEY UPDATE name = name;
 SET @elementid = (SELECT id
                   FROM elements
@@ -70,7 +70,7 @@ SET @conductortypeid = (SELECT id
                         WHERE name = @conductor_type_name);
 
 -- Create an entry in the lines table
-INSERT INTO lines (elements_id, conductor_types_id, number, line_length, noloadmvar)
+INSERT INTO `lines` (elements_id, conductor_types_id, number, line_length, noloadmvar)
 VALUES (@elementid, @conductortypeid, @lineNumber, @km, @noLoadMVar)
 ON DUPLICATE KEY UPDATE elements_id = elements_id;
 
