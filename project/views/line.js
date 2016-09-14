@@ -63,7 +63,23 @@ function forceCreateALine(voltage, end1SSName, end2SSName, lineNumber, lineOwner
             //create owner through post request
             url: "http://localhost:3000/api/lines/create_from_csv",
             type: "POST",
-            data: {name: substationName, voltage: voltage, owner: ownerName},
+            data: {
+                voltage: voltage,
+                end1SSName: end1SSName,
+                end2SSName: end2SSName,
+                lineNumber: lineNumber,
+                lineOwnerName: lineOwnerName,
+                end1SSOwnerName: end1SSOwnerName,
+                end2SSOwnerName: end2SSOwnerName,
+                km: km,
+                conductor_type_Name: conductor_type_Name,
+                sil: sil,
+                noLoadMVar: noLoadMVar,
+                end1LRMvar: end1LRMvar,
+                end1IsSwitchable: end1IsSwitchable,
+                end2LRMvar: end2LRMvar,
+                end2IsSwitchable: end2IsSwitchable
+            },
             dataType: "json",
             success: successFunction,
             error: errorFunction
