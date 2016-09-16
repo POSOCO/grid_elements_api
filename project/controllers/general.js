@@ -7,7 +7,7 @@ router.get('/', function (req, res) {
 
 router.get('/home', function (req, res) {
     //just for testing
-    //require('../models/substation').create("sudrr",null);
+    require('../models/element').creationSQL1("@name", "@description", "@sil", "@stabilityLimit", "@thermalLimit", "@typeName", "@typeId", "@voltage", "@voltageId");
 
     res.render('home', {user: req.user});
 });

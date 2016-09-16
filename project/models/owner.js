@@ -1,5 +1,6 @@
 var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
+var NewSQLHelper = require('../helpers/newSQLHelper');
 var Region = require('./region.js');
 var tableName = "owners";
 var tableAttributes = ["id", "name", "metadata", "regions_id"];
@@ -40,8 +41,28 @@ var forceCreate = function (name, metadata, regionName, done) {
             });
         });
     });
+};
 
-
+var creationSQL = function (ownerNameSQLVar, ownerMetadataSQLVar, regionNameSQLVar, regionIdSQLVar, ownerIdSQLVar, replace) {
+    var delimiter = ";";
+    var sql = "";
+    sql += NewSQLHelper.setVariableSQLString(regionNameSQLVar, "?");
+    sql += delimiter;
+    sql += NewSQLHelper.setVariableSQLString(regionIdSQLVar, "?");
+    sql += delimiter;
+    sql += NewSQLHelper.setVariableSQLString(ownerNameSQLVar, "?");
+    sql += delimiter;
+    sql += NewSQLHelper.setVariableSQLString(ownerMetadataSQLVar, "?");
+    sql += delimiter;
+    sql += NewSQLHelper.createSQLInsertIgnoreStatementString(Region.tableName, [Region.tableColumnNames[1]], [regionNameSQLVar], Region.tableColumnNames[0], regionIdSQLVar);
+    sql += delimiter;
+    if (replace) {
+        sql += NewSQLHelper.createSQLReplaceStatementString(tableName, [tableAttributes[1], tableAttributes[2], tableAttributes[3]], [ownerNameSQLVar, ownerMetadataSQLVar, regionIdSQLVar], tableAttributes[0], ownerIdSQLVar);
+    } else {
+        sql += NewSQLHelper.createSQLInsertIgnoreStatementString(tableName, [tableAttributes[1], tableAttributes[2], tableAttributes[3]], [ownerNameSQLVar, ownerMetadataSQLVar, regionIdSQLVar], tableAttributes[0], ownerIdSQLVar, [tableAttributes[1]], [ownerNameSQLVar]);
+    }
+    console.log(sql);
+    return sql;
 };
 
 module.exports = {
@@ -49,5 +70,6 @@ module.exports = {
     getByName: getByName,
     forceCreate: forceCreate,
     tableColumnNames: tableAttributes,
-    tableName: tableName
+    tableName: tableName,
+    creationSQL: creationSQL
 };

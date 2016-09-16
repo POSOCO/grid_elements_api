@@ -51,7 +51,7 @@ var createSQLGetStatementString = function (tableName, getArgNames, whereArgColN
 var createSQLReplaceStatementString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName) {
     var space = ' ';
     var delimiter = ';';
-    var SQLQueryString = 'INSERT INTO' + space + tableName + +space + '(' + setArgNames.join(',') + ')' + space + 'VALUES' + space;
+    var SQLQueryString = 'INSERT INTO' + space + tableName + space + '(' + setArgNames.join(',') + ')' + space + 'VALUES' + space;
     SQLQueryString += '(' + inputVars.join(',') + ')' + space;
     var updateExpressions = new Array(setArgNames.length);
     SQLQueryString += "ON DUPLICATE KEY UPDATE" + space;
@@ -91,7 +91,8 @@ var createSQLReplaceStatementString = function (tableName, setArgNames, inputVar
 var createSQLInsertIgnoreStatementString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName, idFetchArgNames, idFetchArgVars) {
     var space = ' ';
     var delimiter = ';';
-    var SQLQueryString = 'INSERT INTO' + space + tableName + space + '(' + setArgNames.join(',') + ')' + space + 'VALUES' + space;
+    var SQLQueryString = "";
+    SQLQueryString += 'INSERT INTO' + space + tableName + space + '(' + setArgNames.join(',') + ')' + space + 'VALUES' + space;
     SQLQueryString += '(' + inputVars.join(',') + ')' + space;
     var updateExpressions = new Array(setArgNames.length);
     SQLQueryString += "ON DUPLICATE KEY UPDATE" + space;
@@ -115,8 +116,14 @@ var createSQLInsertIgnoreStatementString = function (tableName, setArgNames, inp
     return SQLQueryString;
 };
 
+var setVariableSQLString = function (nameSQLVar, varValue) {
+    var str = "SET " + nameSQLVar + " = " + varValue;
+    return str;
+};
+
 module.exports = {
     createSQLGetStatementString: createSQLGetStatementString,
     createSQLReplaceStatementString: createSQLReplaceStatementString,
-    createSQLInsertIgnoreStatementString: createSQLInsertIgnoreStatementString
+    createSQLInsertIgnoreStatementString: createSQLInsertIgnoreStatementString,
+    setVariableSQLString: setVariableSQLString
 };

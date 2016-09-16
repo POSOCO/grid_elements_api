@@ -50,7 +50,7 @@ app.use('/api/states', require('./project/controllers/state'));
 app.use('/api/conductor_types', require('./project/controllers/conductor_type'));
 app.use('/api/owners', require('./project/controllers/owner'));
 app.use('/api/substations', require('./project/controllers/substation'));
-app.use('/api/lines', require('./project/controllers/lines'));
+//app.use('/api/lines', require('./project/controllers/line'));
 app.use('/', require('./project/controllers/general'));
 
 
