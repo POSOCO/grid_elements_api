@@ -6,6 +6,7 @@ var Voltage = require('./voltage');
 var Region = require('./region');
 var Owner = require('./owner');
 var State = require('./state');
+var Substation = require('./substation');
 
 var tableName = "elements";
 var tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id"];
@@ -82,7 +83,7 @@ exports.creationSQL = function () {
     return createdSQL;
 };
 
-var creationSQL1 = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVar, elementRegionIdsSQLVar, stateNamesSQLVar, stateIdsSQLVar, substationsNamesSQLVars, substationsVoltagesSQLVar, replace) {
+var creationSQL1 = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVar, elementRegionIdsSQLVar, stateNamesSQLVar, stateIdsSQLVar, replace) {
     var delimiter = ";";
     var sql = "";
     sql += NewSQLHelper.setVariableSQLString(elementNameSQLVar, "?");
@@ -126,20 +127,39 @@ var creationSQL1 = function (elementNameSQLVar, elementDescriptionSQLVar, silSQL
     sql += delimiter;
     sql += NewSQLHelper.createSQLReplaceStatementString("elements_has_states", ["elements_id", "states_id"], [elementIdSQLVar, stateIdsSQLVar]);
     //console.log(sql);
-    //TODO enable to enter multiple states, regions and owners to an element
     return sql;
 };
 
-var create = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerName, ownerMetadata, ownerRegion, region, state, substationNames, substationVoltages, done) {
+var create = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerName, ownerMetadata, ownerRegion, region, state, done) {
     var values = [name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerName, ownerMetadata, ownerRegion, region, state];
     var delimiter = ";";
     var elementIdSQLVar = "@elementId";
     var sql = "";
     sql += "START TRANSACTION READ WRITE" + delimiter;
-    sql += creationSQL1("@name", "@description", "@sil", "@stabilityLimit", "@thermalLimit", "@typeName", "@typeId", "@voltage", "@voltageId", elementIdSQLVar, "@ownerName", "@ownerMetadata", "@ownerRegion", "@ownerRegionId", "@ownerId", "@regionName", "@regionId", "@stateName", "@stateId", [], [], true);
+    sql += creationSQL1("@name", "@description", "@sil", "@stabilityLimit", "@thermalLimit", "@typeName", "@typeId", "@voltage", "@voltageId", elementIdSQLVar, "@ownerName", "@ownerMetadata", "@ownerRegion", "@ownerRegionId", "@ownerId", "@regionName", "@regionId", "@stateName", "@stateId", true);
     sql += delimiter;
     sql += "COMMIT" + delimiter;
     sql += "SELECT " + elementIdSQLVar + " AS elementId" + delimiter;
+    console.log(sql + "\n\n\n");
+    db.get().query(sql, values, function (err, rows) {
+        if (err) return done(err);
+        console.log(JSON.stringify(rows));
+        done(null, rows);
+    });
+};
+
+exports.elementSubstationCreate = function (substationNames, substationVoltages, elementIds, done) {
+    var sql = "";
+    var delimiter = ";";
+    var values = [];
+    sql += "START TRANSACTION READ WRITE;";
+    for (var i = 0; i < substationNames.length; i++) {
+        sql += "SET @subId = (SELECT substations.id FROM elements LEFT OUTER JOIN substations ON substations.elements_id = elements.id LEFT OUTER JOIN voltages ON voltages.id = elements.voltages_id WHERE elements.name = ? AND voltages.level = ?);"
+        sql += NewSQLHelper.createSQLReplaceStatementString("elements_has_substations", ["elements_id", "substations_id"], ["?", "@subId"]);
+        sql += delimiter;
+        values.push(substationNames[i], substationVoltages[i], elementIds[i]);
+    }
+    sql += "COMMIT";
     console.log(sql + "\n\n\n");
     db.get().query(sql, values, function (err, rows) {
         if (err) return done(err);
