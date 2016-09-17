@@ -5,6 +5,10 @@ var tableAttributes = ["id", "name"];
 //id is primary key
 //name is unique
 
+exports.tableColumnNames = tableAttributes;
+exports.tableName = tableName;
+
+
 exports.getAll = function (done) {
     db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [], []), function (err, rows) {
         if (err) return done(err);

@@ -1,3 +1,12 @@
+## Important table design considerations
+* (name) is unique in _regions_ table
+* (name) is unique in _states_ table
+* (name) is unique in _owners_ table
+* (level) is unique in _voltages_ table
+* (type) is unique in _element_types_ table
+* (name, element_types_id, voltages_id) is unique in _elements_ table
+* (element_id, number) is unique in _lines_ table
+
 ## Creating an Owner
 * Create the owner **_region_** ( || NA) and get the id
 * Create the **_owner_**

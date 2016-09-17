@@ -5,6 +5,7 @@ var Element_type = require('./element_type');
 var Voltage = require('./voltage');
 var Region = require('./region');
 var Owner = require('./owner');
+var State = require('./state');
 
 var tableName = "elements";
 var tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id"];
@@ -81,12 +82,12 @@ exports.creationSQL = function () {
     return createdSQL;
 };
 
-exports.creationSQL1 = function (nameSQLVar, descriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVar, regionNameSQLVar, stateNameSQLVar) {
+var creationSQL1 = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVar, elementRegionIdsSQLVar, stateNamesSQLVar, stateIdsSQLVar, substationsNamesSQLVars, substationsVoltagesSQLVar, replace) {
     var delimiter = ";";
     var sql = "";
-    sql += NewSQLHelper.setVariableSQLString(nameSQLVar, "?");
+    sql += NewSQLHelper.setVariableSQLString(elementNameSQLVar, "?");
     sql += delimiter;
-    sql += NewSQLHelper.setVariableSQLString(descriptionSQLVar, "?");
+    sql += NewSQLHelper.setVariableSQLString(elementDescriptionSQLVar, "?");
     sql += delimiter;
     sql += NewSQLHelper.setVariableSQLString(silSQLVar, "?");
     sql += delimiter;
@@ -102,8 +103,50 @@ exports.creationSQL1 = function (nameSQLVar, descriptionSQLVar, silSQLVar, stabi
     sql += delimiter;
     sql += NewSQLHelper.createSQLInsertIgnoreStatementString(Voltage.tableName, [Voltage.tableColumnNames[1]], [voltageSQLVar], Voltage.tableColumnNames[0], voltageIdSQLVar);
     sql += delimiter;
-    sql += NewSQLHelper.createSQLReplaceStatementString(tableName, tableAttributes.slice(1), [nameSQLVar, descriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeIdSQLVar, voltageIdSQLVar], tableAttributes[0], elementIdSQLVar);
-    //TODO create owner by ignore strategy
-    console.log(sql);
+    if (replace) {
+        sql += NewSQLHelper.createSQLReplaceStatementString(tableName, tableAttributes.slice(1), [elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeIdSQLVar, voltageIdSQLVar], tableAttributes[0], elementIdSQLVar);
+        sql += delimiter;
+    } else {
+        sql += NewSQLHelper.createSQLInsertIgnoreStatementString(tableName, tableAttributes.slice(1), [elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeIdSQLVar, voltageIdSQLVar], tableAttributes[0], elementIdSQLVar, ["name", "element_types_id", "voltages_id"], [elementNameSQLVar, elementTypeIdSQLVar, voltageIdSQLVar]);
+        sql += delimiter;
+    }
+    sql += Owner.creationSQL(ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, ownerRegionIdSQLVar, ownerIdSQLVar, false);
+    sql += delimiter;
+    sql += NewSQLHelper.createSQLReplaceStatementString("elements_has_owners", ["elements_id", "owners_id"], [elementIdSQLVar, ownerIdSQLVar]);
+    sql += delimiter;
+    sql += NewSQLHelper.setVariableSQLString(elementRegionNamesSQLVar, "?");
+    sql += delimiter;
+    sql += NewSQLHelper.createSQLInsertIgnoreStatementString(Region.tableName, [Region.tableColumnNames[1]], [elementRegionNamesSQLVar], Region.tableColumnNames[0], elementRegionIdsSQLVar);
+    sql += delimiter;
+    sql += NewSQLHelper.createSQLReplaceStatementString("elements_has_regions", ["elements_id", "regions_id"], [elementIdSQLVar, elementRegionIdsSQLVar]);
+    sql += delimiter;
+    sql += NewSQLHelper.setVariableSQLString(stateNamesSQLVar, "?");
+    sql += delimiter;
+    sql += NewSQLHelper.createSQLInsertIgnoreStatementString(State.tableName, [State.tableColumnNames[1]], [stateNamesSQLVar], State.tableColumnNames[0], stateIdsSQLVar);
+    sql += delimiter;
+    sql += NewSQLHelper.createSQLReplaceStatementString("elements_has_states", ["elements_id", "states_id"], [elementIdSQLVar, stateIdsSQLVar]);
+    //console.log(sql);
+    //TODO enable to enter multiple states, regions and owners to an element
     return sql;
 };
+
+var create = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerName, ownerMetadata, ownerRegion, region, state, substationNames, substationVoltages, done) {
+    var values = [name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerName, ownerMetadata, ownerRegion, region, state];
+    var delimiter = ";";
+    var elementIdSQLVar = "@elementId";
+    var sql = "";
+    sql += "START TRANSACTION READ WRITE" + delimiter;
+    sql += creationSQL1("@name", "@description", "@sil", "@stabilityLimit", "@thermalLimit", "@typeName", "@typeId", "@voltage", "@voltageId", elementIdSQLVar, "@ownerName", "@ownerMetadata", "@ownerRegion", "@ownerRegionId", "@ownerId", "@regionName", "@regionId", "@stateName", "@stateId", [], [], true);
+    sql += delimiter;
+    sql += "COMMIT" + delimiter;
+    sql += "SELECT " + elementIdSQLVar + " AS elementId" + delimiter;
+    console.log(sql + "\n\n\n");
+    db.get().query(sql, values, function (err, rows) {
+        if (err) return done(err);
+        console.log(JSON.stringify(rows));
+        done(null, rows);
+    });
+};
+
+exports.creationSQL1 = creationSQL1;
+exports.create = create;
