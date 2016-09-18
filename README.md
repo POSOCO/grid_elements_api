@@ -25,6 +25,7 @@ An API for grid elements with apps using the API
 
 ##Todos
 1. Add end substation_id attribute to line reactor table -- done
+2. Modify element creation sql to handle zero to multiple owners -- important
 
 ##Links
 1. Google Docs page ---> https://docs.google.com/document/d/1xqxND1KHwLpGc3jCcYlq9GWiVnqFbHW_GvWrCmRioVY/edit?usp=sharing
