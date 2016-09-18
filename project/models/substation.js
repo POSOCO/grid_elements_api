@@ -31,7 +31,7 @@ exports.create_from_scratch = function (name, element_type_name, voltage_level, 
     //CREATE ELEMENT
     createdSQL += Element.creationSQL();
     createdSQL += delimiter;
-    createdSQL += NewSQLHelper.createSQLInsertIgnoreStatementString(tableName, [tableAttributes[1]], [Element.elementIdSQLVar], "id", substationIdSQLVar);
+    createdSQL += NewSQLHelper.getSQLInsertIgnoreString(tableName, [tableAttributes[1]], [Element.elementIdSQLVar], "id", substationIdSQLVar);
     createdSQL += delimiter;
     //COMMIT THE TRANSACTION
     createdSQL += "COMMIT;";
@@ -53,7 +53,7 @@ var creationSQL = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLV
     sql += Element.creationSQL1(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVar, elementRegionIdsSQLVar, stateNamesSQLVar, stateIdsSQLVar, true);
     sql += delimiter;
     //create an entry in the substation table
-    sql += NewSQLHelper.createSQLReplaceStatementString(tableName, [tableAttributes[1]], [elementIdSQLVar], tableAttributes[0], substationIdSQLVar);
+    sql += NewSQLHelper.getSQLInsertReplaceString(tableName, [tableAttributes[1]], [elementIdSQLVar], tableAttributes[0], substationIdSQLVar);
     return sql;
 };
 

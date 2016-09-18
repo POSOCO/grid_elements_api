@@ -37,7 +37,7 @@ exports.create = function (names, done) {
 };
 
 exports.replace = function (name, done) {
-    db.get().query(SQLHelper.createSQLInsertIgnoreString(tableName, ["name"], ["name"]), [name], function (err, result) {
+    db.get().query(SQLHelper.getSQLInsertIgnoreString(tableName, ["name"], ["name"]), [name], function (err, result) {
         if (err) return done(err);
         //console.log("RESULT FROM REGION REPLACE IS " + JSON.stringify(result));
         done(null, result.affectedRows);

@@ -14,7 +14,7 @@ var ArrayHelper = require('./arrayHelper.js');
  * @param inputVars
  * @returns {string}
  */
-var createSQLGetStatementString = function (tableName, getArgNames, whereArgColNames, whereArgOperators, inputVars) {
+var getSQLGetString = function (tableName, getArgNames, whereArgColNames, whereArgOperators, inputVars) {
     var space = ' ';
     var SQLQueryString = 'SELECT' + space;
     SQLQueryString += getArgNames.join(',') + space;
@@ -48,7 +48,7 @@ var createSQLGetStatementString = function (tableName, getArgNames, whereArgColN
  * @param outputVarName
  * @returns {string}
  */
-var createSQLReplaceStatementString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName) {
+var getSQLInsertReplaceString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName) {
     var space = ' ';
     var delimiter = ';';
     var SQLQueryString = 'INSERT INTO' + space + tableName + space + '(' + setArgNames.join(',') + ')' + space + 'VALUES' + space;
@@ -65,7 +65,7 @@ var createSQLReplaceStatementString = function (tableName, setArgNames, inputVar
         SQLQueryString += delimiter;
         //console.log("SQLReplaceStatement STRING IS " + SQLQueryString);
         SQLQueryString += "SET" + space + outputVarName + space + "= (";
-        SQLQueryString += createSQLGetStatementString(tableName, [idColumnName], setArgNames, ArrayHelper.createArrayFromSingleElement("=", setArgNames.length), inputVars);
+        SQLQueryString += getSQLGetString(tableName, [idColumnName], setArgNames, ArrayHelper.createArrayFromSingleElement("=", setArgNames.length), inputVars);
         SQLQueryString += ")";
     }
     return SQLQueryString;
@@ -86,9 +86,11 @@ var createSQLReplaceStatementString = function (tableName, setArgNames, inputVar
  * @param inputVars
  * @param idColumnName
  * @param outputVarName
+ * @param idFetchArgNames
+ * @param idFetchArgVars
  * @returns {string}
  */
-var createSQLInsertIgnoreStatementString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName, idFetchArgNames, idFetchArgVars) {
+var getSQLInsertIgnoreString = function (tableName, setArgNames, inputVars, idColumnName, outputVarName, idFetchArgNames, idFetchArgVars) {
     var space = ' ';
     var delimiter = ';';
     var SQLQueryString = "";
@@ -110,7 +112,7 @@ var createSQLInsertIgnoreStatementString = function (tableName, setArgNames, inp
         SQLQueryString += delimiter;
         //console.log("SQLReplaceStatement STRING IS " + SQLQueryString);
         SQLQueryString += "SET" + space + outputVarName + space + "= (";
-        SQLQueryString += createSQLGetStatementString(tableName, [idColumnName], idFetchArgNames, ArrayHelper.createArrayFromSingleElement("=", idFetchArgNames.length), idFetchArgVars);
+        SQLQueryString += getSQLGetString(tableName, [idColumnName], idFetchArgNames, ArrayHelper.createArrayFromSingleElement("=", idFetchArgNames.length), idFetchArgVars);
         SQLQueryString += ")";
     }
     return SQLQueryString;
@@ -122,8 +124,8 @@ var setVariableSQLString = function (nameSQLVar, varValue) {
 };
 
 module.exports = {
-    createSQLGetStatementString: createSQLGetStatementString,
-    createSQLReplaceStatementString: createSQLReplaceStatementString,
-    createSQLInsertIgnoreStatementString: createSQLInsertIgnoreStatementString,
+    getSQLGetString: getSQLGetString,
+    getSQLInsertReplaceString: getSQLInsertReplaceString,
+    getSQLInsertIgnoreString: getSQLInsertIgnoreString,
     setVariableSQLString: setVariableSQLString
 };

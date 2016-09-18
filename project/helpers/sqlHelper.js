@@ -60,7 +60,7 @@ exports.createSQLReplaceString = function (tableName, setArgNames) {
     return SQLQueryString;
 };
 
-exports.createSQLInsertIgnoreString = function (tableName, setArgNames, ignoreID) {
+exports.getSQLInsertIgnoreString = function (tableName, setArgNames, ignoreID) {
     var SQLQueryString = 'INSERT INTO ' + tableName + ' (' + setArgNames.join(',') + ') VALUES';
     SQLQueryString += " (" + ArrayHelper.createArrayFromSingleElement('?', setArgNames.length).join(',') + ") ";
     var whereArgExpressions = new Array(setArgNames.length);
