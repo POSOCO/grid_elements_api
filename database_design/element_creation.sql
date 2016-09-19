@@ -22,13 +22,22 @@ SET @typeName = ?;
 SET @voltage = ?;
 
 
-SET @ownerName = ?;
+SET @ownerName0 = ?;
 
 
-SET @ownerMetadata = ?;
+SET @ownerMetadata0 = ?;
 
 
-SET @ownerRegion = ?;
+SET @ownerRegion0 = ?;
+
+
+SET @ownerName1 = ?;
+
+
+SET @ownerMetadata1 = ?;
+
+
+SET @ownerRegion1 = ?;
 
 
 SET @regionName0 = ?;
@@ -42,25 +51,25 @@ SET @stateName0 = ?;
 
 SET @stateName1 = ?;
 
-INSERT INTO element_types (TYPE)
+INSERT INTO element_types (type)
 VALUES (@typeName) ON DUPLICATE KEY
-UPDATE TYPE=TYPE;
+UPDATE type=type;
 
 
 SET @typeId =
 (SELECT id
  FROM element_types
- WHERE TYPE = @typeName);
+ WHERE type = @typeName);
 
-INSERT INTO voltages (LEVEL)
+INSERT INTO voltages (level)
 VALUES (@voltage) ON DUPLICATE KEY
-UPDATE LEVEL=LEVEL;
+UPDATE level=level;
 
 
 SET @voltageId =
 (SELECT id
  FROM voltages
- WHERE LEVEL = @voltage);
+ WHERE level = @voltage);
 
 INSERT INTO elements (name,description,sil,stability_limit,thermal_limit,element_types_id,voltages_id)
 VALUES (@name,
@@ -92,18 +101,18 @@ SET @elementId =
        AND voltages_id = @voltageId);
 
 INSERT INTO regions (name)
-VALUES (@ownerRegion) ON DUPLICATE KEY
+VALUES (@ownerRegion0) ON DUPLICATE KEY
 UPDATE name=name;
 
 
 SET @ownerRegionId =
 (SELECT id
  FROM regions
- WHERE name = @ownerRegion);
+ WHERE name = @ownerRegion0);
 
 INSERT INTO owners (name,metadata,regions_id)
-VALUES (@ownerName,
-        @ownerMetadata,
+VALUES (@ownerName0,
+        @ownerMetadata0,
         @ownerRegionId) ON DUPLICATE KEY
 UPDATE name=name,
   metadata=metadata,
@@ -113,7 +122,38 @@ UPDATE name=name,
 SET @ownerId =
 (SELECT id
  FROM owners
- WHERE name = @ownerName);
+ WHERE name = @ownerName0);
+
+INSERT INTO elements_has_owners (elements_id,owners_id)
+VALUES (@elementId,
+        @ownerId) ON DUPLICATE KEY
+UPDATE elements_id=
+  VALUES(elements_id),owners_id=
+  VALUES(owners_id);
+
+INSERT INTO regions (name)
+VALUES (@ownerRegion1) ON DUPLICATE KEY
+UPDATE name=name;
+
+
+SET @ownerRegionId =
+(SELECT id
+ FROM regions
+ WHERE name = @ownerRegion1);
+
+INSERT INTO owners (name,metadata,regions_id)
+VALUES (@ownerName1,
+        @ownerMetadata1,
+        @ownerRegionId) ON DUPLICATE KEY
+UPDATE name=name,
+  metadata=metadata,
+  regions_id=regions_id;
+
+
+SET @ownerId =
+(SELECT id
+ FROM owners
+ WHERE name = @ownerName1);
 
 INSERT INTO elements_has_owners (elements_id,owners_id)
 VALUES (@elementId,
