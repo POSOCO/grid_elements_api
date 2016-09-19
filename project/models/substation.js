@@ -46,23 +46,26 @@ exports.create_from_scratch = function (name, element_type_name, voltage_level, 
     });
 };
 
-var creationSQL = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, substationIdSQLVar, replace) {
+var creationSQL = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVars, ownerMetadataSQLVars, ownerRegionNameSQLVars, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, substationIdSQLVar, replace) {
     var delimiter = ";";
     var sql = "";
     //create the element
-    sql += Element.creationSQL1(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, replace);
+    sql += Element.creationSQL1(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVars, ownerMetadataSQLVars, ownerRegionNameSQLVars, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, replace);
     sql += delimiter;
     //create an entry in the substation table
     sql += NewSQLHelper.getSQLInsertReplaceString(tableName, [tableAttributes[1]], [elementIdSQLVar], tableAttributes[0], substationIdSQLVar);
     return sql;
 };
 
-exports.create = function (name, description, voltage, ownerName, regions, states, replace, done) {
-    var values = [name, description, voltage, ownerName];
+exports.create = function (name, description, voltage, ownerNames, regions, states, replace, done) {
+    var values = [name, description, voltage];
     var delimiter = ";";
     var substationIdSQLVar = "@substationId";
     var sql = "";
 
+    for (var i = 0; i < ownerNames.length; i++) {
+        values.push(ownerNames[i]);
+    }
     for (var i = 0; i < regions.length; i++) {
         values.push(regions[i]);
     }
@@ -74,7 +77,6 @@ exports.create = function (name, description, voltage, ownerName, regions, state
     var elementNameSQLVar = "@name";
     sql += NewSQLHelper.setVariableSQLString(elementNameSQLVar, "?");
     sql += delimiter;
-
     var elementDescriptionSQLVar = "@description";
     sql += NewSQLHelper.setVariableSQLString(elementDescriptionSQLVar, "?");
     sql += delimiter;
@@ -92,31 +94,39 @@ exports.create = function (name, description, voltage, ownerName, regions, state
     sql += delimiter;
     var voltageSQLVar = "@voltage";
     sql += NewSQLHelper.setVariableSQLString(voltageSQLVar, "?");
-    sql += delimiter;
     var ownerNameSQLVar = "@ownerName";
-    sql += NewSQLHelper.setVariableSQLString(ownerNameSQLVar, "?");
-    sql += delimiter;
     var ownerMetadataSQLVar = "@ownerMetadata";
-    sql += NewSQLHelper.setVariableSQLString(ownerMetadataSQLVar, "\"No_Metadata\"");
-    sql += delimiter;
     var ownerRegionNameSQLVar = "@ownerRegion";
-    sql += NewSQLHelper.setVariableSQLString(ownerRegionNameSQLVar, "\"NA\"");
-    sql += delimiter;
+    var ownerNameSQLVars = [];
+    var ownerMetadataSQLVars = [];
+    var ownerRegionNameSQLVars = [];
+    for (var i = 0; i < ownerNames.length; i++) {
+        sql += delimiter;
+        ownerNameSQLVars[i] = ownerNameSQLVar + i;
+        sql += NewSQLHelper.setVariableSQLString(ownerNameSQLVars[i], "?");
+        sql += delimiter;
+        ownerMetadataSQLVars[i] = ownerMetadataSQLVar + i;
+        sql += NewSQLHelper.setVariableSQLString(ownerMetadataSQLVars[i], "\"No_Metadata\"");
+        sql += delimiter;
+        ownerRegionNameSQLVars[i] = ownerRegionNameSQLVar + i;
+        sql += NewSQLHelper.setVariableSQLString(ownerRegionNameSQLVars[i], "\"NA\"");
+    }
     var elementRegionNamesSQLVar = "@regionName";
     var elementRegionNamesSQLVars = [];
     for (var i = 0; i < regions.length; i++) {
+        sql += delimiter;
         elementRegionNamesSQLVars[i] = (elementRegionNamesSQLVar + i);
         sql += NewSQLHelper.setVariableSQLString(elementRegionNamesSQLVars[i], "?");
-        sql += delimiter;
     }
     var stateNamesSQLVar = "@stateName";
     var stateNamesSQLVars = [];
     for (var i = 0; i < states.length; i++) {
+        sql += delimiter;
         stateNamesSQLVars[i] = stateNamesSQLVar + i;
         sql += NewSQLHelper.setVariableSQLString(stateNamesSQLVars[i], "?");
-        sql += delimiter;
     }
-    sql += creationSQL(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, "@typeId", voltageSQLVar, "@voltageId", "@elementId", ownerNameSQLVar, ownerMetadataSQLVar, ownerRegionNameSQLVar, "@ownerRegionId", "@ownerId", elementRegionNamesSQLVars, "@elementRegionId", stateNamesSQLVars, "@stateId", substationIdSQLVar, replace);
+    sql += delimiter;
+    sql += creationSQL(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, "@typeId", voltageSQLVar, "@voltageId", "@elementId", ownerNameSQLVars, ownerMetadataSQLVars, ownerRegionNameSQLVars, "@ownerRegionId", "@ownerId", elementRegionNamesSQLVars, "@elementRegionId", stateNamesSQLVars, "@stateId", substationIdSQLVar, replace);
     sql += delimiter;
     sql += "COMMIT" + delimiter;
     sql += "SELECT " + substationIdSQLVar + " AS substationId" + delimiter;
