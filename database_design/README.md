@@ -6,6 +6,7 @@
 * (type) is unique in _element_types_ table
 * (name, element_types_id, voltages_id) is unique in _elements_ table
 * (element_id, number) is unique in _lines_ table
+* name of a line would be in the format _"substation1-substation2-lineNumber"_ in order to preserve the uniqueness in the _elements_ table
 
 ## Creating an Owner
 * Create the owner **_region_** ( || NA) and get the id

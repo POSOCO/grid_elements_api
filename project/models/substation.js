@@ -6,7 +6,6 @@ var Element = require('./element');
 var tableName = "substations";
 var tableAttributes = ["id", "elements_id"];
 //id is primary key
-//name is unique
 
 var substationIdSQLVar = "@substationid";
 exports.substationIdSQLVar = substationIdSQLVar;
