@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`conductor_types` (
 -- Table `wrldc_grid_elements`.`lines`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`lines` (
-  `id` INT NOT NULL AUTO_INCREMENT,
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'element id and line number are unique',
   `elements_id` INT NOT NULL,
   `conductor_types_id` INT NOT NULL,
   `number` INT NULL COMMENT 'unique (element_id, number)',
@@ -232,6 +232,7 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`lines` (
   PRIMARY KEY (`id`),
   INDEX `fk_lines_conductor_types1_idx` (`conductor_types_id` ASC),
   INDEX `fk_lines_elements1_idx` (`elements_id` ASC),
+  UNIQUE INDEX `number_UNIQUE` (`elements_id` ASC, `number` ASC),
   CONSTRAINT `fk_lines_conductor_types1`
   FOREIGN KEY (`conductor_types_id`)
   REFERENCES `wrldc_grid_elements`.`conductor_types` (`id`)
@@ -267,6 +268,23 @@ CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`line_reactors` (
   REFERENCES `wrldc_grid_elements`.`lines` (`id`)
     ON DELETE RESTRICT
     ON UPDATE CASCADE)
+  ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `wrldc_grid_elements`.`bus_reactors`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `wrldc_grid_elements`.`bus_reactors` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `mvar` INT NOT NULL DEFAULT 0,
+  `elements_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_bus_reactors_elements1_idx` (`elements_id` ASC),
+  CONSTRAINT `fk_bus_reactors_elements1`
+  FOREIGN KEY (`elements_id`)
+  REFERENCES `wrldc_grid_elements`.`elements` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
   ENGINE = InnoDB;
 
 

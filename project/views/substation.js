@@ -3,7 +3,7 @@ function createSubstations(i) {
 }
 function createSubstation(i) {
     var substationName = sReader.statesArrays[0][i][0];
-    var ownerName = sReader.statesArrays[0][i][1];
+    var ownerName = sReader.statesArrays[0][i][1].split("/").map(Function.prototype.call, String.prototype.trim);
     var voltage = sReader.statesArrays[0][i][2];
     if (substationName == undefined || substationName == null || substationName.trim() == "") {
         WriteLineConsole("Encountered a blank substation name at row " + i);
