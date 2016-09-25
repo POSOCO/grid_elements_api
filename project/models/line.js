@@ -4,9 +4,12 @@ var NewSQLHelper = require('../helpers/newSQLHelper');
 var Element = require('./element');
 
 var tableName = "`lines`";
-var tableAttributes = ["id", "elements_id", "conductor_types_id", "number", "line_length", "noloadmvar"];
+var tableAttributes = ["id", "elements_id", "conductor_types_id", "`number`", "line_length", "noloadmvar"];
 //id is primary key
 //(elements_id, number) is unique
+
+exports.tableColumnNames = tableAttributes;
+exports.tableName = tableName;
 
 var creationSQL = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, conductorTypeIdSQLVar, lineNumberSQLVar, lineLengthSQLVar, noLoadMvarSQLVar, elementIdSQLVar, ownerNameSQLVars, ownerMetadataSQLVars, ownerRegionNameSQLVars, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, substationNameSQLVars, substationVoltageSQLVars, lineIdSQLVar, replace) {
     var delimiter = ";";
@@ -15,12 +18,12 @@ var creationSQL = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLV
     sql += Element.creationSQL1(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVars, ownerMetadataSQLVars, ownerRegionNameSQLVars, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, substationNameSQLVars, substationVoltageSQLVars, lineIdSQLVar, replace);
     sql += delimiter;
     //create an entry in the lines table
-    sql += NewSQLHelper.getSQLInsertReplaceString(tableName, [tableAttributes.slice(1)], [elementIdSQLVar, conductorTypeIdSQLVar, lineNumberSQLVar, lineLengthSQLVar, noLoadMvarSQLVar], tableAttributes[0], lineIdSQLVar);
+    sql += NewSQLHelper.getSQLInsertReplaceString(tableName, tableAttributes.slice(1), [elementIdSQLVar, conductorTypeIdSQLVar, lineNumberSQLVar, lineLengthSQLVar, noLoadMvarSQLVar], tableAttributes[0], lineIdSQLVar);
     return sql;
 };
 
-exports.create = function (name, description, voltage, conductorType, lineNumber, lineLength, noLoadMvar, ownerNames, regions, states, substationNames, replace, done) {
-    var values = [name, description, voltage, conductorType, lineNumber, lineLength, noLoadMvar];
+exports.create = function (name, description, voltage, conductorType, sil, lineNumber, lineLength, noLoadMvar, ownerNames, regions, states, substationNames, substationVoltages, replace, done) {
+    var values = [name, description, voltage, conductorType, sil, lineNumber, lineLength, noLoadMvar];
     var delimiter = ";";
     var lineIdSQLVar = "@lineId";
     var conductorTypeIdSQLVar = "@conductorTypeId";
@@ -35,6 +38,10 @@ exports.create = function (name, description, voltage, conductorType, lineNumber
     for (var i = 0; i < states.length; i++) {
         values.push(states[i]);
     }
+    for (var i = 0; i < substationNames.length; i++) {
+        values.push(substationNames[i]);
+        values.push(substationVoltages[i]);
+    }
 
     sql += "START TRANSACTION READ WRITE" + delimiter;
     var elementNameSQLVar = "@name";
@@ -43,9 +50,7 @@ exports.create = function (name, description, voltage, conductorType, lineNumber
     var elementDescriptionSQLVar = "@description";
     sql += NewSQLHelper.setVariableSQLString(elementDescriptionSQLVar, "?");
     sql += delimiter;
-    var silSQLVar = "@sil";
-    sql += NewSQLHelper.setVariableSQLString(silSQLVar, "0");
-    sql += delimiter;
+
     var stabilityLimitSQLVar = "@stabilityLimit";
     sql += NewSQLHelper.setVariableSQLString(stabilityLimitSQLVar, "0");
     sql += delimiter;
@@ -61,6 +66,10 @@ exports.create = function (name, description, voltage, conductorType, lineNumber
     sql += delimiter;
     var conductorTypeSQLVar = "@conductorType";
     sql += NewSQLHelper.setVariableSQLString(conductorTypeSQLVar, "?");
+
+    sql += delimiter;
+    var silSQLVar = "@sil";
+    sql += NewSQLHelper.setVariableSQLString(silSQLVar, "?");
 
     sql += delimiter;
     var lineNumberSQLVar = "@lineNumber";
@@ -128,9 +137,10 @@ exports.create = function (name, description, voltage, conductorType, lineNumber
     sql += "COMMIT" + delimiter;
     sql += "SELECT " + lineIdSQLVar + " AS lineId" + delimiter;
     console.log(sql + "\n\n\n");
+    console.log(values);
     db.get().query(sql, values, function (err, rows) {
         if (err) return done(err);
-        console.log(JSON.stringify(rows));
+        //console.log(JSON.stringify(rows));
         done(null, rows);
     });
 };

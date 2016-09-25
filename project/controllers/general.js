@@ -15,14 +15,14 @@ router.get('/home', function (req, res) {
      console.log("element insertion query completed");
      });
      */
-
-    require('../models/substation').create("SUDHIR_SUBSTATION", "NO DESCRIPTION", "400", ["SUDHIROWNER", "SUDHIR_OWNER_1"], ["SR", "NER"], ["Andhra Pradesh", "Goa"], true, function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        console.log("substation insertion query completed");
-    });
-
+    /*
+     require('../models/substation').create("SUDHIR_SUBSTATION", "NO DESCRIPTION", "400", ["SUDHIROWNER", "SUDHIR_OWNER_1"], ["SR", "NER"], ["Andhra Pradesh", "Goa"], true, function (err, rows) {
+     if (err) {
+     console.log(err);
+     }
+     console.log("substation insertion query completed");
+     });
+     */
     /*
      require('../models/element').elementSubstationCreate(["ACBIL", "ACBIL"], ["400", "400"], [1840, 1832], function (err, rows) {
      if (err) {
@@ -31,6 +31,14 @@ router.get('/home', function (req, res) {
      console.log(JSON.stringify(rows));
      });
      */
+    /*
+    require('../models/line').create("Raichur-Solapur", "No Description", "765", "Hexa Zebra", 1992, 1, 700, 500, ["PGCIL"], ["WR", "SR"], ["Andhra Pradesh", "Karnataka"], ["Raichur", "Solapur"], ["765", "765"], true, function (err, rows) {
+        if (err) {
+            console.log(err);
+        }
+        console.log(JSON.stringify(rows));
+    });
+    */
     res.render('home', {user: req.user});
 });
 
