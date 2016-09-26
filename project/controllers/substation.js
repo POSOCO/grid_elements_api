@@ -31,6 +31,7 @@ router.post('/create_from_csv', function (req, res, next) {
         }
     }
     console.log("Creating (" + name + ", " + owner + ", " + voltage + ")");
+
     /*
      Substation.create_from_scratch(name, element_type, voltage, owner, "NOT KNOWN", metadata, function (err, rows) {
      if (err) {
@@ -42,6 +43,7 @@ router.post('/create_from_csv', function (req, res, next) {
      res.json(resultObject);
      });
      */
+
     Substation.create(name, "No Description", voltage, owner, [], [], true, function (err, rows) {
         if (err) {
             return next(err);
