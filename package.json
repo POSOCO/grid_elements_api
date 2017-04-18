@@ -18,6 +18,7 @@
     "express-session": "^1.13.0",
     "morgan": "^1.7.0",
     "mysql": "^2.10.2",
+    "squel": "latest",
     "ejs": "latest",
     "serve-favicon": "latest",
     "passport": "^0.3.2",

@@ -22,6 +22,32 @@ exports.getByLevel = function (level, done) {
     });
 };
 
+exports.getByLevelWithCreation = function (level, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.insert()
+        .into(tableName)
+        .set(tableAttributes[1], level);
+    var query = sql.toParam().text;
+    query += " ON DUPLICATE KEY UPDATE level = level;";
+    var getSql = squel.select()
+        .from(tableName)
+        .where(
+        squel.expr()
+            .and(tableAttributes[1] + " = ?", level)
+    );
+    query += getSql.toParam().text;
+    var vals = sql.toParam().values.concat(getSql.toParam().values);
+    //console.log(query + getSql.toParam().text);
+    //console.log(sql.toParam().values.concat(getSql.toParam().values));
+    tempConn.query(query, vals, function (err, rows) {
+        if (err) return done(err);
+        done(null, rows);
+    });
+};
+
 exports.create = function (levels, done) {
     if (!(levels.constructor === Array)) {
         levels = [[levels]];
