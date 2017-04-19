@@ -274,10 +274,71 @@ exports.elementSubstationCreate = function (substationNames, substationVoltages,
     });
 };
 
+var plainCreate = exports.plainCreate = function (name, description, sil, stabilityLimit, thermalLimit, typeId, voltageId, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.insert()
+        .into(tableName)
+        .set(tableAttributes[1], name)
+        .set(tableAttributes[2], description)
+        .set(tableAttributes[3], sil)
+        .set(tableAttributes[4], stabilityLimit)
+        .set(tableAttributes[5], thermalLimit)
+        .set(tableAttributes[6], typeId)
+        .set(tableAttributes[7], voltageId);
+    var query = sql.toParam().text;
+    query += " ON DUPLICATE KEY UPDATE name = name;";
+    //stub
+    //(name,element_types_id, voltages_id) is unique
+    var getSql = squel.select()
+        .from(tableName)
+        .where(
+        squel.expr()
+            .and(tableAttributes[1] + " = ?", name)
+            .and(tableAttributes[6] + " = ?", typeId)
+            .and(tableAttributes[7] + " = ?", voltageId)
+    );
+    query += getSql.toParam().text;
+    var vals = sql.toParam().values.concat(getSql.toParam().values);
+    //console.log(query);
+    //console.log(vals);
+    tempConn.query(query, vals, function (err, rows) {
+        if (err) return done(err);
+        done(null, rows[1]);
+    });
+};
+
 var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {
     var tempConn = conn;
-    //todo complete this
-    //ignore substation creation first for testing purpose
+    if (conn == null) {
+        tempConn = db.get();
+    }
+
+    // get Voltage Id
+    Voltage.getByLevelWithCreation(voltage, function (err, rows) {
+        if (err) return done(err);
+        var voltageId = rows[0].id;
+
+        // get Element type Id
+        Element_type.getByTypeWithCreation(typeName, function () {
+            if (err) return done(err);
+            var typeId = rows[0].id;
+
+            // get element creation Id
+            plainCreate(name, description, sil, stabilityLimit, thermalLimit, typeId, voltageId, function (err, rows) {
+                if (err) return done(err);
+
+                var elementId = rows[0].id;
+
+                // get the owners Id
+                //todo complete this
+                //ignore substation creation first for testing purpose
+
+            }, tempConn);
+        }, tempConn);
+    }, tempConn);
 
 };
 
