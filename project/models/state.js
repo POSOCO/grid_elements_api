@@ -2,6 +2,7 @@ var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
 var tableName  = "states";
 var tableAttributes = ["id", "name"];
+var squel = require("squel");
 //id is primary key
 //name is unique
 
@@ -18,6 +19,32 @@ exports.getAll = function (done) {
 
 exports.getByName = function (name, done) {
     db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], ['name'], ['=']), [name], function (err, rows) {
+        if (err) return done(err);
+        done(null, rows);
+    });
+};
+
+exports.getByNameWithCreation = function (name, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.insert()
+        .into(tableName)
+        .set(tableAttributes[1], name);
+    var query = sql.toParam().text;
+    query += " ON DUPLICATE KEY UPDATE name = name;";
+    var getSql = squel.select()
+        .from(tableName)
+        .where(
+        squel.expr()
+            .and(tableAttributes[1] + " = ?", name)
+    );
+    query += getSql.toParam().text;
+    var vals = sql.toParam().values.concat(getSql.toParam().values);
+    //console.log(query + getSql.toParam().text);
+    //console.log(sql.toParam().values.concat(getSql.toParam().values));
+    tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
         done(null, rows);
     });

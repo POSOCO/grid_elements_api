@@ -4,6 +4,7 @@ var NewSQLHelper = require('../helpers/newSQLHelper');
 var Region = require('./region.js');
 var tableName = "owners";
 var tableAttributes = ["id", "name", "metadata", "regions_id"];
+var squel = require("squel");
 //id is primary key
 //name is unique
 
@@ -19,6 +20,68 @@ var getByName = function (name, done) {
         if (err) return done(err);
         done(null, rows);
     });
+};
+
+var getByNameWithCreationWithoutTransaction = function (name, metadata, regionName, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    Region.getByNameWithCreation(name, function (err, rows) {
+        if (err) return done(err);
+        var regionId = rows[0].id;
+        var sql = squel.insert()
+            .into(tableName)
+            .set(tableAttributes[1], name)
+            .set(tableAttributes[2], metadata)
+            .set(tableAttributes[3], regionId);
+        var query = sql.toParam().text;
+        query += " ON DUPLICATE KEY UPDATE name = name;";
+        var getSql = squel.select()
+            .from(tableName)
+            .where(
+            squel.expr()
+                .and(tableAttributes[1] + " = ?", name)
+        );
+        query += getSql.toParam().text;
+        var vals = sql.toParam().values.concat(getSql.toParam().values);
+        //console.log(query);
+        //console.log(vals);
+        tempConn.query(query, vals, function (err, rows) {
+            if (err) return done(err);
+            done(null, rows);
+        });
+    }, tempConn);
+};
+
+var getByNameWithCreation = function (name, metadata, regionName, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+        tempConn.beginTransaction(function (err) {
+            if (err) return done(err);
+            getByNameWithCreationWithoutTransaction(name, metadata, regionName, function (err, rows) {
+                if (err) {
+                    tempConn.rollback(function () {
+                        return done(err);
+                    });
+                }
+                tempConn.commit(function (err) {
+                    if (err) {
+                        tempConn.rollback(function () {
+                            return done(err);
+                        });
+                    }
+                    done(null, rows);
+                });
+            }, tempConn);
+        });
+    } else {
+        getByNameWithCreationWithoutTransaction(name, metadata, regionName, function (err, rows) {
+            if (err) return done(err);
+            done(null, rows);
+        }, tempConn);
+    }
 };
 
 var forceCreate = function (name, metadata, regionName, done) {
@@ -63,5 +126,6 @@ module.exports = {
     forceCreate: forceCreate,
     tableColumnNames: tableAttributes,
     tableName: tableName,
-    creationSQL: creationSQL
+    creationSQL: creationSQL,
+    getByNameWithCreation: getByNameWithCreation
 };
