@@ -30,7 +30,14 @@ INSERT IGNORE INTO tags (tags,...) VALUES (the_new_tags, ...);
 SELECT tag_id FROM tags WHERE tags=the_new_tags;
 ```
 
-## Creation Strategies for **states, region, owners, voltages, element_types, conductor_types** tables rows - normal
+## Creation Strategies for **states, region, voltages, element_types, conductor_types** tables rows - normal
+
+## Creation Strategy for **owners** table rows
+1. Start a [transaction](https://github.com/mysqljs/mysql#transactions)
+2. Find the **region_id** by owner region name using the [insert_if_absent_and_get_id_strategy](#insert_if_absent_and_get_id_strategy)
+3. Create an entry in the **owners** table
+4. Commit the [transaction](https://github.com/mysqljs/mysql#transactions)
+5. Return the created owner id
 
 ## Creation Strategy for **elements** table rows
 1. Start a [transaction](https://github.com/mysqljs/mysql#transactions)
