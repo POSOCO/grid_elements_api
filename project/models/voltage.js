@@ -44,7 +44,7 @@ exports.getByLevelWithCreation = function (level, done, conn) {
     //console.log(sql.toParam().values.concat(getSql.toParam().values));
     tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
-        done(null, rows);
+        done(null, rows[1]);
     });
 };
 

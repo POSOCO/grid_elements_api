@@ -25,6 +25,15 @@ exports.connect = function (mode, done) {
     done();
 };
 
+exports.getPoolConnection = function (done) {
+    if (state.pool == null) {
+        return done(new Error("Connection pool was null"));
+    }
+    state.pool.getConnection(function (err, connection) {
+        return done(err, connection);
+    });
+};
+
 exports.get = function () {
     return state.pool;
 };

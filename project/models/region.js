@@ -42,11 +42,11 @@ exports.getByNameWithCreation = function (name, done, conn) {
     );
     query += getSql.toParam().text;
     var vals = sql.toParam().values.concat(getSql.toParam().values);
-    //console.log(query + getSql.toParam().text);
-    //console.log(sql.toParam().values.concat(getSql.toParam().values));
+    //console.log(query);
+    //console.log(vals);
     tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
-        done(null, rows);
+        done(null, rows[1]);
     });
 };
 

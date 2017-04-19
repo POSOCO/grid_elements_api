@@ -27,8 +27,9 @@ var getByNameWithCreationWithoutTransaction = function (name, metadata, regionNa
     if (conn == null) {
         tempConn = db.get();
     }
-    Region.getByNameWithCreation(name, function (err, rows) {
+    Region.getByNameWithCreation(regionName, function (err, rows) {
         if (err) return done(err);
+        //console.log(JSON.stringify(rows));
         var regionId = rows[0].id;
         var sql = squel.insert()
             .into(tableName)
@@ -49,7 +50,7 @@ var getByNameWithCreationWithoutTransaction = function (name, metadata, regionNa
         //console.log(vals);
         tempConn.query(query, vals, function (err, rows) {
             if (err) return done(err);
-            done(null, rows);
+            done(null, rows[1]);
         });
     }, tempConn);
 };
@@ -57,24 +58,36 @@ var getByNameWithCreationWithoutTransaction = function (name, metadata, regionNa
 var getByNameWithCreation = function (name, metadata, regionName, done, conn) {
     var tempConn = conn;
     if (conn == null) {
-        tempConn = db.get();
-        tempConn.beginTransaction(function (err) {
+        db.getPoolConnection(function (err, poolConnection) {
             if (err) return done(err);
-            getByNameWithCreationWithoutTransaction(name, metadata, regionName, function (err, rows) {
+            tempConn = poolConnection;
+            tempConn.beginTransaction(function (err) {
+                //console.log("transaction started...");
                 if (err) {
-                    tempConn.rollback(function () {
-                        return done(err);
-                    });
+                    return done(err);
                 }
-                tempConn.commit(function (err) {
+                getByNameWithCreationWithoutTransaction(name, metadata, regionName, function (err, rows) {
                     if (err) {
+                        //console.log("error in owner name creation...");
                         tempConn.rollback(function () {
+                            //console.log("transaction rollback done ...");
                             return done(err);
                         });
+                        return;
                     }
-                    done(null, rows);
-                });
-            }, tempConn);
+                    tempConn.commit(function (err) {
+                        if (err) {
+                            //console.log("error in transaction commit ...");
+                            tempConn.rollback(function () {
+                                //console.log("error in transaction commit rollback ...");
+                                return done(err);
+                            });
+                        }
+                        //console.log("transaction committed successfully ...");
+                        done(null, rows);
+                    });
+                }, tempConn);
+            });
         });
     } else {
         getByNameWithCreationWithoutTransaction(name, metadata, regionName, function (err, rows) {
