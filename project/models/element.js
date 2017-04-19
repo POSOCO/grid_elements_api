@@ -10,6 +10,7 @@ var Substation = require('./substation');
 
 var tableName = "elements";
 var tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id"];
+var sequel = require("sequel");
 //id is primary key
 //(name,element_types_id, voltages_id) is unique
 
@@ -271,6 +272,55 @@ exports.elementSubstationCreate = function (substationNames, substationVoltages,
         console.log(JSON.stringify(rows));
         done(null, rows);
     });
+};
+
+var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {
+    var tempConn = conn;
+    //todo complete this
+    //ignore substation creation first for testing purpose
+
+};
+
+exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        db.getPoolConnection(function (err, poolConnection) {
+            if (err) return done(err);
+            tempConn = poolConnection;
+            tempConn.beginTransaction(function (err) {
+                //console.log("transaction started...");
+                if (err) {
+                    return done(err);
+                }
+                getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
+                    if (err) {
+                        //console.log("error in owner name creation...");
+                        tempConn.rollback(function () {
+                            //console.log("transaction rollback done ...");
+                            return done(err);
+                        });
+                        return;
+                    }
+                    tempConn.commit(function (err) {
+                        if (err) {
+                            //console.log("error in transaction commit ...");
+                            tempConn.rollback(function () {
+                                //console.log("error in transaction commit rollback ...");
+                                return done(err);
+                            });
+                        }
+                        //console.log("transaction committed successfully ...");
+                        done(null, rows);
+                    });
+                }, tempConn);
+            });
+        });
+    } else {
+        getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
+            if (err) return done(err);
+            done(null, rows);
+        }, tempConn);
+    }
 };
 
 exports.creationSQL1 = creationSQL1;
