@@ -2,9 +2,13 @@ var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
 var NewSQLHelper = require('../helpers/newSQLHelper');
 var Element = require('./element');
+var Element_Substation = require('./element_substation');
 
 var tableName = "substations";
 var tableAttributes = ["id", "elements_id"];
+var squel = require("squel");
+var async = require("async");
+var vsprintf = require("sprintf-js").vsprintf;
 //id is primary key
 
 var substationIdSQLVar = "@substationid";
@@ -49,7 +53,7 @@ var creationSQL = function (elementNameSQLVar, elementDescriptionSQLVar, silSQLV
     var delimiter = ";";
     var sql = "";
     //create the element
-    sql += Element.creationSQL1(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVars, ownerMetadataSQLVars, ownerRegionNameSQLVars, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, [],[], replace);
+    sql += Element.creationSQL1(elementNameSQLVar, elementDescriptionSQLVar, silSQLVar, stabilityLimitSQLVar, thermalLimitSQLVar, elementTypeNameSQLVar, elementTypeIdSQLVar, voltageSQLVar, voltageIdSQLVar, elementIdSQLVar, ownerNameSQLVars, ownerMetadataSQLVars, ownerRegionNameSQLVars, ownerRegionIdSQLVar, ownerIdSQLVar, elementRegionNamesSQLVars, elementRegionIdsSQLVar, stateNamesSQLVars, stateIdsSQLVar, [], [], replace);
     sql += delimiter;
     //create an entry in the substation table
     sql += NewSQLHelper.getSQLInsertReplaceString(tableName, [tableAttributes[1]], [elementIdSQLVar], tableAttributes[0], substationIdSQLVar);
@@ -135,6 +139,131 @@ exports.create = function (name, description, voltage, ownerNames, regions, stat
         console.log(JSON.stringify(rows));
         done(null, rows);
     });
+};
+
+var plainCreate = exports.plainCreate = function (element_id, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.insert()
+        .into(tableName)
+        .set(tableAttributes[1], element_id);
+    var query = sql.toParam().text;
+    //query += " ON DUPLICATE KEY UPDATE name = name;";
+    query += vsprintf(" ON DUPLICATE KEY UPDATE %s = %s;", [tableAttributes[1], tableAttributes[1]]);
+    var getSql = squel.select()
+        .from(tableName)
+        .where(
+        squel.expr()
+            .and(tableAttributes[1] + " = ?", element_id)
+    );
+    query += getSql.toParam().text;
+    var vals = sql.toParam().values.concat(getSql.toParam().values);
+    //console.log(query);
+    //console.log(vals);
+    tempConn.query(query, vals, function (err, rows) {
+        if (err) return done(err);
+        done(null, rows[1]);
+    });
+};
+
+var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, voltage, ownerNames, regions, states, done, conn) {
+    // create element and get the element id
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var tempResults = {
+        elementId: null,
+        substationId: null,
+        elements: [],
+        substations: []
+    };
+
+    //create the element and get the elementId
+    var getElementId = function (callback) {
+        //stub
+        var ownerRegions = ownerNames.map(function (x) {
+            return "NA";
+        });
+        Element.getWithCreation(name, description, -1, -1, -1, "Substation", voltage, ownerNames, ownerNames, ownerRegions, regions, states, [], [], function (err, rows) {
+            if (err) return callback(err);
+            var elementId = rows[0].id;
+            tempResults.elementId = elementId;
+            tempResults.elements = rows;
+            callback(null, tempResults);
+        }, tempConn)
+    };
+
+    var getSubstationId = function (prevRes, callback) {
+        plainCreate(prevRes.elementId, function (err, rows) {
+            if (err) return callback(err);
+            var substationId = rows[0].id;
+            tempResults.substationId = substationId;
+            tempResults.substations = rows;
+            prevRes.substationId = substationId;
+            prevRes.substations = rows;
+            callback(null, prevRes);
+        }, tempConn)
+    };
+
+    var createElementsHasSubstations = function (prevRes, callback) {
+        Element_Substation.getWithCreation(prevRes.elementId, prevRes.substationId, function (err, rows) {
+            if (err) return callback(err);
+            callback(null, prevRes);
+        }, tempConn);
+    };
+
+    //create the elements_
+    var functionsArray = [getElementId, getSubstationId, createElementsHasSubstations];
+    async.waterfall(functionsArray, function (err, prevRes) {
+        if (err) return done(err);
+        console.log(prevRes);
+        done(null, prevRes.substations);
+    });
+};
+
+var getWithCreation = exports.getWithCreation = function (name, description, voltage, ownerNames, regions, states, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        db.getPoolConnection(function (err, poolConnection) {
+            if (err) return done(err);
+            tempConn = poolConnection;
+            tempConn.beginTransaction(function (err) {
+                //console.log("transaction started...");
+                if (err) {
+                    return done(err);
+                }
+                getWithCreationWithoutTransaction(name, description, voltage, ownerNames, regions, states, function (err, rows) {
+                    if (err) {
+                        //console.log("error in owner name creation...");
+                        tempConn.rollback(function () {
+                            //console.log("transaction rollback done ...");
+                            return done(err);
+                        });
+                        return;
+                    }
+                    tempConn.commit(function (err) {
+                        if (err) {
+                            //console.log("error in transaction commit ...");
+                            tempConn.rollback(function () {
+                                //console.log("error in transaction commit rollback ...");
+                                return done(err);
+                            });
+                        }
+                        //console.log("transaction committed successfully ...");
+                        done(null, rows);
+                    });
+                }, tempConn);
+            });
+        });
+    } else {
+        getWithCreationWithoutTransaction(name, description, voltage, ownerNames, regions, states, function (err, rows) {
+            if (err) return done(err);
+            done(null, rows);
+        }, tempConn);
+    }
 };
 
 exports.creationSQL = creationSQL;

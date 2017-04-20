@@ -38,6 +38,18 @@ exports.get = function () {
     return state.pool;
 };
 
+exports.disconnect = function () {
+    if (state.pool == null) {
+        return;
+    }
+    pool.end(function (err) {
+        if (err) {
+            console.log("Unable to disconnect to pool");
+            console.log(err);
+        }
+        console.log("disconnected the database connection pool");
+    });
+};
 exports.fixtures = function (data) {
     var pool = state.pool;
     if (!pool) return done(new Error('Missing database connection.'));

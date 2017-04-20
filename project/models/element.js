@@ -373,7 +373,9 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
             if (err) return callback(err);
             var elementId = rows[0].id;
             tempResults.elementId = elementId;
+            tempResults.elements = rows;
             prevRes.elementId = elementId;
+            prevRes.elements = rows;
             callback(null, prevRes);
         }, tempConn);
     };
@@ -501,21 +503,11 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
         });
     };
 
-    //create entries in elements_has_states
-    var getElementRow = function (prevRes, callback) {
-        getById(prevRes.elementId, function (err, rows) {
-            if (err) return callback(err);
-            var elements = rows;
-            tempResults.elements = elements;
-            prevRes.elements = elements;
-            callback(null, prevRes);
-        }, tempConn);
-    };
-
     //todo complete functions for entries in substation and elements_has_substations tables
-    var functionsArray = [getVoltageId, getElementTypeId, getElementId, getOwnerIds, createElementsHasOwners, getRegionIds, createElementsHasRegions, getStateIds, createElementsHasStates, getElementRow];
+    var functionsArray = [getVoltageId, getElementTypeId, getElementId, getOwnerIds, createElementsHasOwners, getRegionIds, createElementsHasRegions, getStateIds, createElementsHasStates];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
+        console.log(prevRes);
         done(null, prevRes.elements);
     });
 };

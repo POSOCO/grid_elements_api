@@ -63,26 +63,27 @@ app.use(function (req, res, next) {
 });
 
 /*
-// error handlers
-//CHECK OUT ERROR HANDLERS HERE https://derickbailey.com/2014/09/06/proper-error-handling-in-expressjs-route-handlers/
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function (err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            Error: err.message,
-            error: err
-        });
-    });
-}
-*/
+ // error handlers
+ //CHECK OUT ERROR HANDLERS HERE https://derickbailey.com/2014/09/06/proper-error-handling-in-expressjs-route-handlers/
+ // development error handler
+ // will print stacktrace
+ if (app.get('env') === 'development') {
+ app.use(function (err, req, res, next) {
+ res.status(err.status || 500);
+ res.render('error', {
+ message: err.message,
+ Error: err.message,
+ error: err
+ });
+ });
+ }
+ */
 
 // production error handler
 // no stacktraces leaked to user
 app.use(function (err, req, res, next) {
     res.status(err.status || 500);
+    //db.disconnect();
     res.render('error', {
         message: err.message,
         Error: err.message,
@@ -101,3 +102,21 @@ db.connect(db.MODE_PRODUCTION, function (err) {
         })
     }
 });
+
+function exitHandler(options, err) {
+    db.disconnect();
+    if (options.cleanup) {
+
+    }
+    if (err) console.log(err.stack);
+    if (options.exit) process.exit();
+}
+
+//do something when app is closing
+process.on('exit', exitHandler.bind(null, {cleanup: true}));
+
+//catches ctrl+c event
+process.on('SIGINT', exitHandler.bind(null, {exit: true}));
+
+//catches uncaught exceptions
+process.on('uncaughtException', exitHandler.bind(null, {exit: true}));
