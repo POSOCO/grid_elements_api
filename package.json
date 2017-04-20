@@ -14,15 +14,16 @@
     "body-parser": "latest",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.3",
+    "ejs": "latest",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
     "morgan": "^1.7.0",
     "mysql": "^2.10.2",
-    "squel": "latest",
-    "ejs": "latest",
-    "serve-favicon": "latest",
     "passport": "^0.3.2",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "serve-favicon": "latest",
+    "sprintf-js": "^1.0.3",
+    "squel": "latest"
   },
   "devDependencies": {
     "chai": "^3.5.0",

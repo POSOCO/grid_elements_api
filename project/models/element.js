@@ -4,13 +4,17 @@ var NewSQLHelper = require('../helpers/newSQLHelper');
 var Element_type = require('./element_type');
 var Voltage = require('./voltage');
 var Region = require('./region');
+var Element_Region = require('./element_region');
 var Owner = require('./owner');
+var Element_Owner = require('./element_owner');
 var State = require('./state');
+var Element_State = require('./element_state');
 var Substation = require('./substation');
 
 var tableName = "elements";
 var tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id"];
-var sequel = require("sequel");
+var squel = require("squel");
+var async = require("async");
 //id is primary key
 //(name,element_types_id, voltages_id) is unique
 
@@ -51,6 +55,24 @@ exports.getAll = function (done) {
         if (err) return done(err);
         done(null, rows);
     })
+};
+
+var getById = exports.getById = function (id, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.select()
+        .from(tableName);
+    var expr = squel.expr();
+    if (id != null) {
+        expr.and(tableAttributes[0] + " = ?", id);
+    }
+    sql.where(expr);
+    db.get().query(sql.toParam().text, sql.toParam().values, function (err, rows) {
+        if (err) return done(err);
+        done(null, rows);
+    });
 };
 
 exports.creationSQL = function () {
@@ -290,7 +312,6 @@ var plainCreate = exports.plainCreate = function (name, description, sil, stabil
         .set(tableAttributes[7], voltageId);
     var query = sql.toParam().text;
     query += " ON DUPLICATE KEY UPDATE name = name;";
-    //stub
     //(name,element_types_id, voltages_id) is unique
     var getSql = squel.select()
         .from(tableName)
@@ -315,31 +336,188 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     if (conn == null) {
         tempConn = db.get();
     }
+    var tempResults = {
+        ownerIds: [],
+        regionIds: [],
+        stateIds: [],
+        voltageId: null,
+        typeId: null,
+        elementId: null,
+        elements: []
+    };
 
-    // get Voltage Id
-    Voltage.getByLevelWithCreation(voltage, function (err, rows) {
-        if (err) return done(err);
-        var voltageId = rows[0].id;
-
-        // get Element type Id
-        Element_type.getByTypeWithCreation(typeName, function () {
-            if (err) return done(err);
-            var typeId = rows[0].id;
-
-            // get element creation Id
-            plainCreate(name, description, sil, stabilityLimit, thermalLimit, typeId, voltageId, function (err, rows) {
-                if (err) return done(err);
-
-                var elementId = rows[0].id;
-
-                // get the owners Id
-                //todo complete this
-                //ignore substation creation first for testing purpose
-
-            }, tempConn);
+    // create voltage and get the voltage id
+    var getVoltageId = function (callback) {
+        Voltage.getByLevelWithCreation(voltage, function (err, rows) {
+            if (err) return callback(err);
+            var voltageId = rows[0].id;
+            tempResults.voltageId = voltageId;
+            callback(null, tempResults);
         }, tempConn);
-    }, tempConn);
+    };
 
+    // create element type and get the elementType id
+    var getElementTypeId = function (prevRes, callback) {
+        Element_type.getByTypeWithCreation(typeName, function (err, rows) {
+            if (err) return callback(err);
+            var typeId = rows[0].id;
+            tempResults.typeId = typeId;
+            prevRes.typeId = typeId;
+            callback(null, prevRes);
+        }, tempConn);
+    };
+
+    // create element and get the element id
+    var getElementId = function (prevRes, callback) {
+        plainCreate(name, description, sil, stabilityLimit, thermalLimit, prevRes.typeId, prevRes.voltageId, function (err, rows) {
+            if (err) return callback(err);
+            var elementId = rows[0].id;
+            tempResults.elementId = elementId;
+            prevRes.elementId = elementId;
+            callback(null, prevRes);
+        }, tempConn);
+    };
+
+    // get all the ownerIds. Returns the ownerIds Array
+    var getOwnerIds = function (prevRes, callback) {
+        //todo check if ownerNames is an Array
+        var ownerIterators = Array.apply(null, {length: ownerNames.length}).map(Function.call, Number);
+        var getOwnerId = function (ownerIterator, callback) {
+            Owner.getByNameWithCreation(ownerNames[ownerIterator], ownerMetadatas[ownerIterator], ownerRegions[ownerIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                var ownerId = rows[0].id;
+                callback(null, ownerId);
+            }, tempConn);
+        };
+        //finding each owner Id
+        async.mapSeries(ownerIterators, getOwnerId, function (err, results) {
+            if (err) return callback(err);
+            var ownerIds = results;
+            tempResults.ownerIds = ownerIds;
+            prevRes.ownerIds = ownerIds;
+            callback(null, prevRes);
+        });
+    };
+
+    //create entries in elements_has_owners
+    var createElementsHasOwners = function (prevRes, callback) {
+        var ownerIterators = Array.apply(null, {length: prevRes.ownerIds.length}).map(Function.call, Number);
+        var createElementOwnerRelation = function (ownerIterator, callback) {
+            Element_Owner.getWithCreation(prevRes.elementId, prevRes.ownerIds[ownerIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, rows[0]);
+            }, tempConn);
+        };
+        //creating each owner element relation
+        async.mapSeries(ownerIterators, createElementOwnerRelation, function (err, results) {
+            if (err) return callback(err);
+            callback(null, prevRes);
+        });
+    };
+
+    // get all the regionIds. Returns the regionIds Array
+    var getRegionIds = function (prevRes, callback) {
+        //todo check if regions is an Array
+        var regionIterators = Array.apply(null, {length: regions.length}).map(Function.call, Number);
+        var getRegionId = function (regionIterator, callback) {
+            Region.getByNameWithCreation(regions[regionIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                var regionId = rows[0].id;
+                callback(null, regionId);
+            }, tempConn);
+        };
+        //finding each region Id
+        async.mapSeries(regionIterators, getRegionId, function (err, results) {
+            if (err) return callback(err);
+            var regionIds = results;
+            tempResults.regionIds = regionIds;
+            prevRes.regionIds = regionIds;
+            callback(null, prevRes);
+        });
+    };
+
+    //create entries in elements_has_regions
+    var createElementsHasRegions = function (prevRes, callback) {
+        var regionIterators = Array.apply(null, {length: prevRes.regionIds.length}).map(Function.call, Number);
+        var createElementRegionRelation = function (regionIterator, callback) {
+            Element_Region.getWithCreation(prevRes.elementId, prevRes.regionIds[regionIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, rows[0]);
+            }, tempConn);
+        };
+        //creating each region element relation
+        async.mapSeries(regionIterators, createElementRegionRelation, function (err, results) {
+            if (err) return callback(err);
+            callback(null, prevRes);
+        });
+    };
+
+    // get all the stateIds. Returns the stateIds Array
+    var getStateIds = function (prevRes, callback) {
+        //todo check if states is an Array
+        var stateIterators = Array.apply(null, {length: states.length}).map(Function.call, Number);
+        var getStateId = function (stateIterator, callback) {
+            State.getByNameWithCreation(states[stateIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                var stateId = rows[0].id;
+                callback(null, stateId);
+            }, tempConn);
+        };
+        //finding each state Id
+        async.mapSeries(stateIterators, getStateId, function (err, results) {
+            if (err) return callback(err);
+            var stateIds = results;
+            tempResults.stateIds = stateIds;
+            prevRes.stateIds = stateIds;
+            callback(null, prevRes);
+        });
+    };
+
+    //create entries in elements_has_states
+    var createElementsHasStates = function (prevRes, callback) {
+        var stateIterators = Array.apply(null, {length: prevRes.stateIds.length}).map(Function.call, Number);
+        var createElementStateRelation = function (regionIterator, callback) {
+            Element_State.getWithCreation(prevRes.elementId, prevRes.stateIds[regionIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, rows[0]);
+            }, tempConn);
+        };
+        //creating each region element relation
+        async.mapSeries(stateIterators, createElementStateRelation, function (err, results) {
+            if (err) return callback(err);
+            callback(null, prevRes);
+        });
+    };
+
+    //create entries in elements_has_states
+    var getElementRow = function (prevRes, callback) {
+        getById(prevRes.elementId, function (err, rows) {
+            if (err) return callback(err);
+            var elements = rows;
+            tempResults.elements = elements;
+            prevRes.elements = elements;
+            callback(null, prevRes);
+        }, tempConn);
+    };
+
+    //todo complete functions for entries in substation and elements_has_substations tables
+    var functionsArray = [getVoltageId, getElementTypeId, getElementId, getOwnerIds, createElementsHasOwners, getRegionIds, createElementsHasRegions, getStateIds, createElementsHasStates, getElementRow];
+    async.waterfall(functionsArray, function (err, prevRes) {
+        if (err) return done(err);
+        done(null, prevRes.elements);
+    });
 };
 
 exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {

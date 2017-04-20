@@ -2,6 +2,7 @@ var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
 var tableName  = "voltages";
 var tableAttributes = ["id", "level"];
+var squel = require("squel");
 //id is primary key
 //level is unique
 
