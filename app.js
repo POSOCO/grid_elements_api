@@ -99,17 +99,22 @@ db.connect(db.MODE_PRODUCTION, function (err) {
     } else {
         app.listen(port, function () {
             console.log('Listening on port ' + port + ' ...');
-        })
+            //throw new Error("Custom Test Error");
+        });
     }
 });
 
 function exitHandler(options, err) {
-    db.disconnect();
-    if (options.cleanup) {
-
-    }
-    if (err) console.log(err.stack);
-    if (options.exit) process.exit();
+    console.log("inside the exit handler...");
+    db.disconnect(function (err) {
+        if (options.exit) {
+            console.log("Exiting the app...");
+            process.exit(1);
+        }
+    });
+    //if (options.cleanup) console.log('cleanUp');
+    //if (err) console.log(err.stack);
+    //if (options.exit) process.exit(1);
 }
 
 //do something when app is closing

@@ -10,6 +10,7 @@ var Element_Owner = require('./element_owner');
 var State = require('./state');
 var Element_State = require('./element_state');
 var Substation = require('./substation');
+var Element_Substation = require('./element_substation');
 
 var tableName = "elements";
 var tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id"];
@@ -340,6 +341,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
         ownerIds: [],
         regionIds: [],
         stateIds: [],
+        substationIds: [],
         voltageId: null,
         typeId: null,
         elementId: null,
@@ -503,10 +505,51 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
         });
     };
 
-    //todo complete functions for entries in substation and elements_has_substations tables
-    var functionsArray = [getVoltageId, getElementTypeId, getElementId, getOwnerIds, createElementsHasOwners, getRegionIds, createElementsHasRegions, getStateIds, createElementsHasStates];
+    // get Substation Ids
+    var getSubstationIds = function (prevRes, callback) {
+        //todo check if substationNames is an Array and substationNames and substationVoltages have same length
+        var substationIterators = Array.apply(null, {length: substationNames.length}).map(Function.call, Number);
+        var getSubstationId = function (substationIterator, callback) {
+            Substation.getWithCreation(substationNames[substationIterator], substationNames[substationIterator], substationVoltages[substationIterator], [], [], [], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                var substationId = rows[0].id;
+                callback(null, substationId);
+            }, tempConn);
+        };
+        //finding each substation Id
+        async.mapSeries(substationIterators, getSubstationId, function (err, results) {
+            if (err) return callback(err);
+            var substationIds = results;
+            tempResults.substationIds = substationIds;
+            prevRes.substationIds = substationIds;
+            callback(null, prevRes);
+        });
+    };
+
+    //create entries in elements_has_substations
+    var createElementsHasSubstations = function (prevRes, callback) {
+        var substationIterators = Array.apply(null, {length: prevRes.substationIds.length}).map(Function.call, Number);
+        var createElementSubstationRelation = function (substationIterator, callback) {
+            Element_Substation.getWithCreation(prevRes.elementId, prevRes.substationIds[substationIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, rows[0]);
+            }, tempConn);
+        };
+        //creating each substation element relation
+        async.mapSeries(substationIterators, createElementSubstationRelation, function (err, results) {
+            if (err) return callback(err);
+            callback(null, prevRes);
+        });
+    };
+
+    var functionsArray = [getVoltageId, getElementTypeId, getElementId, getOwnerIds, createElementsHasOwners, getRegionIds, createElementsHasRegions, getStateIds, createElementsHasStates, getSubstationIds, createElementsHasSubstations];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
+        console.log("From Element creation********************");
         console.log(prevRes);
         done(null, prevRes.elements);
     });

@@ -86,7 +86,10 @@ SELECT tag_id FROM tags WHERE tags=the_new_tags;
 3. Modify element creation sql to handle zero to multiple substations -- done
 4. Create line creation code -- important
 5. Create functions for get id by creation if required, for states, region, owners, voltages, element_types, conductor_types -- done
-6. Complete element creation by completing element substations in the function 
+6. Complete element creation by completing element substations in the function -- done
+7. Complete Bus reactor creation
+8. Complete Line creation
+9. Complete Line Reactor creation
 
 ## Links
 1. Google Docs page ---> https://docs.google.com/document/d/1xqxND1KHwLpGc3jCcYlq9GWiVnqFbHW_GvWrCmRioVY/edit?usp=sharing

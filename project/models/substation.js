@@ -219,6 +219,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     var functionsArray = [getElementId, getSubstationId, createElementsHasSubstations];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
+        console.log("From Substation Creation********************");
         console.log(prevRes);
         done(null, prevRes.substations);
     });

@@ -26,7 +26,7 @@ router.get('/create_element', function (req, res, next) {
         name = "sudhir";
     }
     //name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn
-    Element.getWithCreation(name, "sudhir_desc", 9999, 9999, 9999, "ICT", "400", ["ACPL", "BALCO"], ["sudhir_metadata", "sudhir_metadata"], ["WR", "WR"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], [], [], function (err, rows) {
+    Element.getWithCreation(name, "sudhir_desc", 9999, 9999, 9999, "ICT", "400", ["ACPL", "BALCO"], ["sudhir_metadata", "sudhir_metadata"], ["WR", "WR"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], ["sudhir", "sudhir1"], ["400", "400"], function (err, rows) {
         if (err) {
             return next(err);
         }
