@@ -12,17 +12,20 @@
     <h3>Upload the states csv file here...</h3>
     <input type="file" id="StatesFileInput"></td>
     <br><br>
-    <button id="statesButton" onclick="createStates()" class="generate_button">Feed States</button>
+    <button id="statesButton" onclick="createStatesAsync()" class="generate_button">Feed States</button>
     <br><br>
-    <button id="regionsButton" onclick="createRegions()" class="generate_button">Feed Regions</button>
+    <button id="regionsButton" onclick="createRegionsAsync()" class="generate_button">Feed Regions</button>
     <br><br>
-    <button id="regionsButton" onclick="createVoltages()" class="generate_button">Feed Voltages</button>
+    <button id="regionsButton" onclick="createVoltagesAsync()" class="generate_button">Feed Voltages</button>
     <br><br>
-    <button id="elementTypesButton" onclick="createElementTypes()" class="generate_button">Feed Element Types</button>
+    <button id="elementTypesButton" onclick="createElementTypesAsync()" class="generate_button">Feed Element Types
+    </button>
     <br><br>
-    <button id="conductorTypesButton" onclick="createConductorTypes()" class="generate_button">Feed Conductor Types</button>
+    <button id="conductorTypesButton" onclick="createConductorTypesAsync()" class="generate_button">Feed Conductor
+        Types
+    </button>
     <br><br>
-    <button id="OwnersButton" onclick="createOwners()" class="generate_button">Feed Owners</button>
+    <button id="OwnersButton" onclick="createOwnersAsync()" class="generate_button">Feed Owners</button>
     <br><br>
     <button id="SubstationsButton" onclick="createSubstations()" class="generate_button">Feed Substations</button>
     <br><br>
@@ -30,6 +33,7 @@
     <br><br>
     <button id="LineReactorsButton" onclick="createLineReactors()" class="generate_button">Feed Line Reactors</button>
     <br><br>
+
     <div class="hidingClass">
         <div id="console" style="border: 1px solid black;width: 95%;height: 300px;overflow: scroll;">
         </div>
@@ -47,6 +51,7 @@
 <script src="csvToArray.js"></script>
 <script src="consoleFunctions.js"></script>
 <script src="home.js"></script>
+<script src="home-async.js"></script>
 <script src="owners.js"></script>
 <script src="substation.js"></script>
 <script src="line.js"></script>

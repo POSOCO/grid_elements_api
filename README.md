@@ -91,6 +91,8 @@ SELECT tag_id FROM tags WHERE tags=the_new_tags;
 8. Complete Line creation -- done
 9. Complete Line Reactor creation -- done
 10. Decide about the data duplication happening in elements_has_substations for substations
+11. Regions, States, Voltages, ElementTypes, ConductorTypes, Owners csv UI -- done
+12. 
 
 ## Links
 1. Google Docs page ---> https://docs.google.com/document/d/1xqxND1KHwLpGc3jCcYlq9GWiVnqFbHW_GvWrCmRioVY/edit?usp=sharing

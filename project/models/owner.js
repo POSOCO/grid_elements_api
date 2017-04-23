@@ -64,6 +64,7 @@ var getByNameWithCreation = function (name, metadata, regionName, done, conn) {
             tempConn.beginTransaction(function (err) {
                 //console.log("transaction started...");
                 if (err) {
+                    tempConn.release();
                     return done(err);
                 }
                 getByNameWithCreationWithoutTransaction(name, metadata, regionName, function (err, rows) {
@@ -71,6 +72,7 @@ var getByNameWithCreation = function (name, metadata, regionName, done, conn) {
                         //console.log("error in owner name creation...");
                         tempConn.rollback(function () {
                             //console.log("transaction rollback done ...");
+                            tempConn.release();
                             return done(err);
                         });
                         return;
@@ -80,10 +82,12 @@ var getByNameWithCreation = function (name, metadata, regionName, done, conn) {
                             //console.log("error in transaction commit ...");
                             tempConn.rollback(function () {
                                 //console.log("error in transaction commit rollback ...");
+                                tempConn.release();
                                 return done(err);
                             });
                         }
                         //console.log("transaction committed successfully ...");
+                        tempConn.release();
                         done(null, rows);
                     });
                 }, tempConn);
