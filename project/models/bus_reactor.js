@@ -4,7 +4,10 @@ var NewSQLHelper = require('../helpers/newSQLHelper');
 var Element = require('./element');
 
 var tableName = "bus_reactors";
-var tableAttributes = ["id", "elements_id", "mvar"];
+var tableAttributes = ["id", "elements_id", "mvar", "br_num"];
+var squel = require("squel");
+var async = require("async");
+var vsprintf = require("sprintf-js").vsprintf;
 //id is primary key
 //elements_id is unique
 
@@ -131,6 +134,126 @@ exports.create = function (name, description, voltage, sil, mvar, ownerNames, re
         //console.log(JSON.stringify(rows));
         done(null, rows);
     });
+};
+
+var plainCreate = exports.plainCreate = function (element_id, mvar, br_num, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.insert()
+        .into(tableName)
+        .set(tableAttributes[1], element_id)
+        .set(tableAttributes[2], mvar)
+        .set(tableAttributes[3], br_num);
+    var query = sql.toParam().text;
+    //query += " ON DUPLICATE KEY UPDATE name = name;";
+    query += vsprintf(" ON DUPLICATE KEY UPDATE %s = %s;", [tableAttributes[1], tableAttributes[1]]);
+    var getSql = squel.select()
+        .from(tableName)
+        .where(
+        squel.expr()
+            .and(tableAttributes[1] + " = ?", element_id)
+    );
+    query += getSql.toParam().text;
+    var vals = sql.toParam().values.concat(getSql.toParam().values);
+    //console.log(query);
+    //console.log(vals);
+    tempConn.query(query, vals, function (err, rows) {
+        if (err) return done(err);
+        done(null, rows[1]);
+    });
+};
+
+var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, done, conn) {
+    // create bus reactor and get the element id
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var tempResults = {
+        elementId: null,
+        busReactorId: null,
+        elements: [],
+        busReactors: []
+    };
+
+    //create the element and get the elementId
+    var getElementId = function (callback) {
+        var ownerRegions = ownerNames.map(function (x) {
+            return "NA";
+        });
+        Element.getWithCreation(name, description, sil, stabilityLimit, thermalLimit, "Bus Reactor", voltage, ownerNames, ownerNames, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
+            if (err) return callback(err);
+            var elementId = rows[0].id;
+            tempResults.elementId = elementId;
+            tempResults.elements = rows;
+            callback(null, tempResults);
+        }, tempConn)
+    };
+
+    var getBusReactorId = function (prevRes, callback) {
+        plainCreate(prevRes.elementId, mvar, br_num, function (err, rows) {
+            if (err) return callback(err);
+            var busReactorId = rows[0].id;
+            tempResults.busReactorId = busReactorId;
+            tempResults.busReactors = rows;
+            prevRes.busReactorId = busReactorId;
+            prevRes.busReactors = rows;
+            callback(null, prevRes);
+        }, tempConn)
+    };
+
+    //create the elements_
+    var functionsArray = [getElementId, getBusReactorId];
+    async.waterfall(functionsArray, function (err, prevRes) {
+        if (err) return done(err);
+        console.log("From Bus Reactor Creation********************");
+        console.log(prevRes);
+        done(null, prevRes.busReactors);
+    });
+};
+
+var getWithCreation = exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        db.getPoolConnection(function (err, poolConnection) {
+            if (err) return done(err);
+            tempConn = poolConnection;
+            tempConn.beginTransaction(function (err) {
+                //console.log("transaction started...");
+                if (err) {
+                    return done(err);
+                }
+                getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, function (err, rows) {
+                    if (err) {
+                        //console.log("error in owner name creation...");
+                        tempConn.rollback(function () {
+                            //console.log("transaction rollback done ...");
+                            return done(err);
+                        });
+                        return;
+                    }
+                    tempConn.commit(function (err) {
+                        if (err) {
+                            //console.log("error in transaction commit ...");
+                            tempConn.rollback(function () {
+                                //console.log("error in transaction commit rollback ...");
+                                return done(err);
+                            });
+                        }
+                        //console.log("transaction committed successfully ...");
+                        done(null, rows);
+                    });
+                }, tempConn);
+            });
+        });
+    } else {
+        getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, function (err, rows) {
+            if (err) return done(err);
+            done(null, rows);
+        }, tempConn);
+    }
 };
 
 exports.creationSQL = creationSQL;

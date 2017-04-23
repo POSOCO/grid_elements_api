@@ -169,7 +169,7 @@ var plainCreate = exports.plainCreate = function (element_id, done, conn) {
 };
 
 var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, voltage, ownerNames, regions, states, done, conn) {
-    // create element and get the element id
+    // create substation and get the element id
     var tempConn = conn;
     if (conn == null) {
         tempConn = db.get();
@@ -183,7 +183,6 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
 
     //create the element and get the elementId
     var getElementId = function (callback) {
-        //stub
         var ownerRegions = ownerNames.map(function (x) {
             return "NA";
         });
