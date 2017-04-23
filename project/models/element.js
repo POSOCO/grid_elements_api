@@ -13,11 +13,11 @@ var Substation = require('./substation');
 var Element_Substation = require('./element_substation');
 
 var tableName = "elements";
-var tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id"];
+var tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id", "elem_num"];
 var squel = require("squel");
 var async = require("async");
 //id is primary key
-//(name,element_types_id, voltages_id) is unique
+//(name,element_types_id, voltages_id,elem_num) is unique
 
 var nameSQLVar = "@name";
 var typeNameSQLVar = "@typename";
@@ -297,7 +297,7 @@ exports.elementSubstationCreate = function (substationNames, substationVoltages,
     });
 };
 
-var plainCreate = exports.plainCreate = function (name, description, sil, stabilityLimit, thermalLimit, typeId, voltageId, done, conn) {
+var plainCreate = exports.plainCreate = function (name, description, sil, stabilityLimit, thermalLimit, typeId, voltageId, elem_num, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         tempConn = db.get();
@@ -310,7 +310,8 @@ var plainCreate = exports.plainCreate = function (name, description, sil, stabil
         .set(tableAttributes[4], stabilityLimit)
         .set(tableAttributes[5], thermalLimit)
         .set(tableAttributes[6], typeId)
-        .set(tableAttributes[7], voltageId);
+        .set(tableAttributes[7], voltageId)
+        .set(tableAttributes[8], elem_num);
     var query = sql.toParam().text;
     query += " ON DUPLICATE KEY UPDATE name = name;";
     //(name,element_types_id, voltages_id) is unique
@@ -321,6 +322,7 @@ var plainCreate = exports.plainCreate = function (name, description, sil, stabil
             .and(tableAttributes[1] + " = ?", name)
             .and(tableAttributes[6] + " = ?", typeId)
             .and(tableAttributes[7] + " = ?", voltageId)
+            .and(tableAttributes[8] + " = ?", elem_num)
     );
     query += getSql.toParam().text;
     var vals = sql.toParam().values.concat(getSql.toParam().values);
@@ -332,7 +334,7 @@ var plainCreate = exports.plainCreate = function (name, description, sil, stabil
     });
 };
 
-var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {
+var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, elem_num, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         tempConn = db.get();
@@ -371,7 +373,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
 
     // create element and get the element id
     var getElementId = function (prevRes, callback) {
-        plainCreate(name, description, sil, stabilityLimit, thermalLimit, prevRes.typeId, prevRes.voltageId, function (err, rows) {
+        plainCreate(name, description, sil, stabilityLimit, thermalLimit, prevRes.typeId, prevRes.voltageId, elem_num, function (err, rows) {
             if (err) return callback(err);
             var elementId = rows[0].id;
             tempResults.elementId = elementId;
@@ -555,7 +557,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     });
 };
 
-exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {
+exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, elem_num, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         db.getPoolConnection(function (err, poolConnection) {
@@ -566,7 +568,7 @@ exports.getWithCreation = function (name, description, sil, stabilityLimit, ther
                 if (err) {
                     return done(err);
                 }
-                getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
+                getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, elem_num, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
                     if (err) {
                         //console.log("error in owner name creation...");
                         tempConn.rollback(function () {
@@ -590,7 +592,7 @@ exports.getWithCreation = function (name, description, sil, stabilityLimit, ther
             });
         });
     } else {
-        getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
+        getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, elem_num, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
             if (err) return done(err);
             done(null, rows);
         }, tempConn);

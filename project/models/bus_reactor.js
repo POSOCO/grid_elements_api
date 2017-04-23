@@ -4,7 +4,7 @@ var NewSQLHelper = require('../helpers/newSQLHelper');
 var Element = require('./element');
 
 var tableName = "bus_reactors";
-var tableAttributes = ["id", "elements_id", "mvar", "br_num"];
+var tableAttributes = ["id", "elements_id", "mvar"];
 var squel = require("squel");
 var async = require("async");
 var vsprintf = require("sprintf-js").vsprintf;
@@ -136,7 +136,7 @@ exports.create = function (name, description, voltage, sil, mvar, ownerNames, re
     });
 };
 
-var plainCreate = exports.plainCreate = function (element_id, mvar, br_num, done, conn) {
+var plainCreate = exports.plainCreate = function (element_id, mvar, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         tempConn = db.get();
@@ -144,8 +144,7 @@ var plainCreate = exports.plainCreate = function (element_id, mvar, br_num, done
     var sql = squel.insert()
         .into(tableName)
         .set(tableAttributes[1], element_id)
-        .set(tableAttributes[2], mvar)
-        .set(tableAttributes[3], br_num);
+        .set(tableAttributes[2], mvar);
     var query = sql.toParam().text;
     //query += " ON DUPLICATE KEY UPDATE name = name;";
     query += vsprintf(" ON DUPLICATE KEY UPDATE %s = %s;", [tableAttributes[1], tableAttributes[1]]);
@@ -165,7 +164,7 @@ var plainCreate = exports.plainCreate = function (element_id, mvar, br_num, done
     });
 };
 
-var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, done, conn) {
+var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, mvar, done, conn) {
     // create bus reactor and get the element id
     var tempConn = conn;
     if (conn == null) {
@@ -183,7 +182,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
         var ownerRegions = ownerNames.map(function (x) {
             return "NA";
         });
-        Element.getWithCreation(name, description, sil, stabilityLimit, thermalLimit, "Bus Reactor", voltage, ownerNames, ownerNames, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
+        Element.getWithCreation(name, description, sil, stabilityLimit, thermalLimit, "Bus Reactor", voltage, elem_num, ownerNames, ownerNames, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
             if (err) return callback(err);
             var elementId = rows[0].id;
             tempResults.elementId = elementId;
@@ -193,7 +192,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     };
 
     var getBusReactorId = function (prevRes, callback) {
-        plainCreate(prevRes.elementId, mvar, br_num, function (err, rows) {
+        plainCreate(prevRes.elementId, mvar, function (err, rows) {
             if (err) return callback(err);
             var busReactorId = rows[0].id;
             tempResults.busReactorId = busReactorId;
@@ -214,7 +213,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     });
 };
 
-var getWithCreation = exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, done, conn) {
+var getWithCreation = exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, mvar, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         db.getPoolConnection(function (err, poolConnection) {
@@ -225,7 +224,7 @@ var getWithCreation = exports.getWithCreation = function (name, description, sil
                 if (err) {
                     return done(err);
                 }
-                getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, function (err, rows) {
+                getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, mvar, function (err, rows) {
                     if (err) {
                         //console.log("error in owner name creation...");
                         tempConn.rollback(function () {
@@ -249,7 +248,7 @@ var getWithCreation = exports.getWithCreation = function (name, description, sil
             });
         });
     } else {
-        getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, br_num, function (err, rows) {
+        getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, mvar, function (err, rows) {
             if (err) return done(err);
             done(null, rows);
         }, tempConn);

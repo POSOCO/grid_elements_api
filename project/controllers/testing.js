@@ -28,7 +28,7 @@ router.get('/create_element', function (req, res, next) {
         name = "sudhir";
     }
     //name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn
-    Element.getWithCreation(name, "sudhir_desc", 9999, 9999, 9999, "ICT", "400", ["ACPL", "BALCO"], ["sudhir_metadata", "sudhir_metadata"], ["WR", "WR"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], ["sudhir", "sudhir1"], ["400", "400"], function (err, rows) {
+    Element.getWithCreation(name, "sudhir_desc", 9999, 9999, 9999, "ICT", "400", 1, ["ACPL", "BALCO"], ["sudhir_metadata", "sudhir_metadata"], ["WR", "WR"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], ["sudhir", "sudhir1"], ["400", "400"], function (err, rows) {
         if (err) {
             return next(err);
         }
@@ -58,7 +58,7 @@ router.get('/create_bus_reactor', function (req, res, next) {
         name = "sudhir";
     }
     //name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, mvar, done, conn
-    BusReactor.getWithCreation(name, "sudhir_desc", 100, 200, 500, "400", ["ACPL", "BALCO"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], ["sudhir"], ["400"], 125, 1, function (err, rows) {
+    BusReactor.getWithCreation(name, "sudhir_desc", 100, 200, 500, "400", 1, ["ACPL", "BALCO"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], ["sudhir"], ["400"],125, function (err, rows) {
         if (err) {
             return next(err);
         }
@@ -73,7 +73,7 @@ router.get('/create_line', function (req, res, next) {
         name = "sudhir";
     }
     //name, description, sil, stabilityLimit, thermalLimit, voltage, ownerNames, regions, states, substationNames, substationVoltages, cond_type, line_num, line_len, no_load_mvar, done, conn
-    Line.getWithCreation(name, "sudhir_desc", 111, 222, 555, "400", ["ACPL", "BALCO"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], ["sudhir", "Akola"], ["400", "400"], "Twin Moose", 1, 999, 1345, function (err, rows) {
+    Line.getWithCreation(name, "sudhir_desc", 111, 222, 555, "400",1, ["ACPL", "BALCO"], ["WR", "SR"], ["Andhra Pradesh", "Bihar"], ["sudhir", "Akola"], ["400", "400"], "Twin Moose", 999, 1345, function (err, rows) {
         if (err) {
             return next(err);
         }

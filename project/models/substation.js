@@ -186,7 +186,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
         var ownerRegions = ownerNames.map(function (x) {
             return "NA";
         });
-        Element.getWithCreation(name, description, -1, -1, -1, "Substation", voltage, ownerNames, ownerNames, ownerRegions, regions, states, [], [], function (err, rows) {
+        Element.getWithCreation(name, description, -1, -1, -1, "Substation", voltage, 1, ownerNames, ownerNames, ownerRegions, regions, states, [], [], function (err, rows) {
             if (err) return callback(err);
             var elementId = rows[0].id;
             tempResults.elementId = elementId;
