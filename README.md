@@ -89,7 +89,7 @@ SELECT tag_id FROM tags WHERE tags=the_new_tags;
 6. Complete element creation by completing element substations in the function -- done
 7. Complete Bus reactor creation -- done
 8. Complete Line creation -- done
-9. Complete Line Reactor creation
+9. Complete Line Reactor creation -- done
 10. Decide about the data duplication happening in elements_has_substations for substations
 
 ## Links
