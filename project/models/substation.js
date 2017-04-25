@@ -233,6 +233,7 @@ var getWithCreation = exports.getWithCreation = function (name, description, vol
             tempConn.beginTransaction(function (err) {
                 //console.log("transaction started...");
                 if (err) {
+                    tempConn.release();
                     return done(err);
                 }
                 getWithCreationWithoutTransaction(name, description, voltage, ownerNames, regions, states, function (err, rows) {
@@ -240,6 +241,7 @@ var getWithCreation = exports.getWithCreation = function (name, description, vol
                         //console.log("error in owner name creation...");
                         tempConn.rollback(function () {
                             //console.log("transaction rollback done ...");
+                            tempConn.release();
                             return done(err);
                         });
                         return;
@@ -249,10 +251,12 @@ var getWithCreation = exports.getWithCreation = function (name, description, vol
                             //console.log("error in transaction commit ...");
                             tempConn.rollback(function () {
                                 //console.log("error in transaction commit rollback ...");
+                                tempConn.release();
                                 return done(err);
                             });
                         }
                         //console.log("transaction committed successfully ...");
+                        tempConn.release();
                         done(null, rows);
                     });
                 }, tempConn);

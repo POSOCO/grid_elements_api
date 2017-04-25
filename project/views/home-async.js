@@ -169,7 +169,7 @@ function createOwnersAsync() {
     }
     console.log(owners);
     $.ajax({
-            //create code through post request
+            //create owners through post request
             url: "http://localhost:3000/api/owners/create_array",
             type: "POST",
             data: JSON.stringify({owners: owners}),
@@ -189,5 +189,57 @@ function createOwnersAsync() {
             }
         }
     );
+}
 
+function createSubstationsAsync() {
+    var substationsArray = sReader.statesArrays[0];
+    var substations = [];
+    for (var i = 1; i < substationsArray.length; i++) {
+        var substationObj = substationsArray[i];
+        if (substationObj.length >= 4 && substationObj[0] != null && substationObj[0].trim() != "") {
+            var tempObj = {
+                name: substationObj[0],
+                ownerName: substationObj[1],
+                voltage: substationObj[2],
+                region: substationObj[3],
+                state: substationObj[4],
+                description: substationObj[5]
+            };
+            if(tempObj.description.trim() == ""){
+                tempObj.description = "NA";
+            }
+            if(tempObj.ownerName.trim() == ""){
+                tempObj.ownerName = "NA";
+            }
+            if(tempObj.region.trim() == ""){
+                tempObj.region = "NA";
+            }
+            if(tempObj.state.trim() == ""){
+                tempObj.state = "NA";
+            }
+            substations.push(tempObj);
+        }
+    }
+    console.log(substations);
+    $.ajax({
+            //create substations through post request
+            url: "http://localhost:3000/api/substations/create_array",
+            type: "POST",
+            data: JSON.stringify({substations: substations}),
+            contentType: 'application/json; charset=UTF-8',
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data["Error"]) {
+                    WriteLineConsole("Substations couldn't be created, Error: " + JSON.stringify(data.Error));
+                } else {
+                    WriteLineConsole("Substations created !!!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                WriteLineConsole("The Substations are not created :-(");
+            }
+        }
+    );
 }

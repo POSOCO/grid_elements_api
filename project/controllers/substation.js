@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var Substation = require('../models/substation.js');
+var async = require("async");
 
 router.get('/', function (req, res, next) {
     Substation.getAll(function (err, rows) {
@@ -52,6 +53,30 @@ router.post('/create_from_csv', function (req, res, next) {
         var resultObject = rows[rows.length - 1][0];
         console.log("RESULT FROM SUBSTATION CREATION IS => " + JSON.stringify(resultObject));
         res.json(resultObject);
+    });
+});
+
+router.post('/create_array', function (req, res, next) {
+    var substations = req.body["substations"];
+    //console.log("States create post request body object is " + JSON.stringify(req.body));
+    //console.log(substations);
+    var substationIterators = Array.apply(null, {length: substations.length}).map(Function.call, Number);
+    var getSubstationId = function (substationIterator, callback) {
+        //name, description, voltage, ownerNames, regions, states
+        Substation.getWithCreation(substations[substationIterator]["name"],substations[substationIterator]["description"], substations[substationIterator]["voltage"], substations[substationIterator]["ownerName"].split("/"), substations[substationIterator]["region"].split("/"), substations[substationIterator]["state"].split("/"), function (err, rows) {
+            if (err) {
+                return callback(err);
+            }
+            var substationId = rows[0].id;
+            //console.log(substationId);
+            callback(null, substationId);
+        }, null)
+    };
+    //finding each substation Id
+    async.mapSeries(substationIterators, getSubstationId, function (err, results) {
+        if (err) return next(err);
+        var substationIds = results;
+        res.json({substationIds: substationIds});
     });
 });
 
