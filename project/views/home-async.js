@@ -205,16 +205,16 @@ function createSubstationsAsync() {
                 state: substationObj[4],
                 description: substationObj[5]
             };
-            if(tempObj.description.trim() == ""){
+            if (tempObj.description.trim() == "") {
                 tempObj.description = "NA";
             }
-            if(tempObj.ownerName.trim() == ""){
+            if (tempObj.ownerName.trim() == "") {
                 tempObj.ownerName = "NA";
             }
-            if(tempObj.region.trim() == ""){
+            if (tempObj.region.trim() == "") {
                 tempObj.region = "NA";
             }
-            if(tempObj.state.trim() == ""){
+            if (tempObj.state.trim() == "") {
                 tempObj.state = "NA";
             }
             substations.push(tempObj);
@@ -239,6 +239,161 @@ function createSubstationsAsync() {
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
                 WriteLineConsole("The Substations are not created :-(");
+            }
+        }
+    );
+}
+
+//function (name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, cond_type, line_len, no_load_mvar, done, conn) {
+function createLinesAsync() {
+    var linesArray = sReader.statesArrays[0];
+    var lines = [];
+    for (var i = 1; i < linesArray.length; i++) {
+        var lineObj = linesArray[i];
+        if (lineObj.length >= 4 && lineObj[0] != null && lineObj[0].trim() != "" && lineObj[1] != null && lineObj[1].trim() != "" && lineObj[2] != null && lineObj[2].trim() != "") {
+            var tempObj = {
+                name: lineObj[1].trim() + "-" + lineObj[2].trim(),
+                description: "NA",
+                elem_num: lineObj[3].trim(),
+                ownerName: lineObj[4].trim(),
+                voltage: lineObj[0].trim(),
+                substation_names: [lineObj[1].trim(), lineObj[2].trim()],
+                substation_voltages: [lineObj[0], lineObj[0]],
+                line_len: lineObj[7].trim(),
+                cond_type: lineObj[8].trim(),
+                sil: lineObj[9].trim(),
+                thermal_limit: lineObj[15].trim(),
+                stability_limit: lineObj[16].trim(),
+                no_load_mvar: lineObj[10].trim(),
+                region: "NA",
+                state: "NA"
+            };
+            if (tempObj.ownerName.trim() == "") {
+                tempObj.ownerName = "NA";
+            }
+            if (tempObj.sil.trim() == "") {
+                tempObj.sil = -1;
+            }
+            if (tempObj.line_len.trim() == "") {
+                tempObj.line_len = -1;
+            }
+            if (tempObj.thermal_limit.trim() == "") {
+                tempObj.thermal_limit = -1;
+            }
+            if (tempObj.stability_limit.trim() == "") {
+                tempObj.stability_limit = -1;
+            }
+            if (tempObj.no_load_mvar.trim() == "") {
+                tempObj.no_load_mvar = -1;
+            }
+            lines.push(tempObj);
+        }
+    }
+    console.log(lines);
+    $.ajax({
+            //create substations through post request
+            url: "http://localhost:3000/api/lines/create_array",
+            type: "POST",
+            data: JSON.stringify({lines: lines}),
+            contentType: 'application/json; charset=UTF-8',
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data["Error"]) {
+                    WriteLineConsole("Lines couldn't be created, Error: " + JSON.stringify(data.Error));
+                } else {
+                    WriteLineConsole("Lines created !!!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                WriteLineConsole("The Lines are not created :-(");
+            }
+        }
+    );
+}
+
+//(name, description, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_name, line_volt, line_num, mvar, is_switchable, done, conn)
+function createLineReactorsAsync() {
+    var lineReactorsArray = sReader.statesArrays[0];
+    var lineReactors = [];
+    for (var i = 1; i < lineReactorsArray.length; i++) {
+        var lineReactorObj = lineReactorsArray[i];
+        if (lineReactorObj.length >= 4 && lineReactorObj[0] != null && lineReactorObj[0].trim() != "" && lineReactorObj[1] != null && lineReactorObj[1].trim() != "" && lineReactorObj[2] != null && lineReactorObj[2].trim() != "") {
+            // if end1 LR mvar value is present
+            var end1LrMvar = lineReactorObj[11].trim();
+            var end1LrSwitchable = ((lineReactorObj[12].trim().toLowerCase() == '1') || (lineReactorObj[12].trim().toLocaleLowerCase() == 'yes')) ? 1 : 0;
+            if (end1LrMvar != null && !isNaN(end1LrMvar) && end1LrMvar != "") {
+                var tempObj = {
+                    name: lineReactorObj[1].trim() + "-" + lineReactorObj[2].trim() + "-" + lineReactorObj[3].trim() + "@" + lineReactorObj[1].trim(),
+                    description: "NA",
+                    line_elem_num: lineReactorObj[3].trim(),
+                    elem_num: 1,
+                    ownerName: lineReactorObj[4].trim(),
+                    voltage: lineReactorObj[0].trim(),
+                    line_name: lineReactorObj[1].trim() + "-" + lineReactorObj[2].trim(),
+                    substation_names: [lineReactorObj[1].trim()],
+                    substation_voltages: [lineReactorObj[0]],
+                    sil: -1,
+                    thermal_limit: -1,
+                    stability_limit: -1,
+                    mvar: end1LrMvar,
+                    is_switchable: end1LrSwitchable,
+                    region: "WR",
+                    state: "NA"
+                };
+                if (tempObj.ownerName.trim() == "") {
+                    tempObj.ownerName = "NA";
+                }
+                lineReactors.push(tempObj);
+            }
+            var end2LrMvar = lineReactorObj[13].trim();
+            var end2LrSwitchable = ((lineReactorObj[14].trim().toLowerCase() == '1') || (lineReactorObj[14].trim().toLocaleLowerCase() == 'yes')) ? 1 : 0;
+            if (end2LrMvar != null && !isNaN(end2LrMvar) && end2LrMvar != "") {
+                tempObj = {
+                    name: lineReactorObj[1].trim() + "-" + lineReactorObj[2].trim() + "-" + lineReactorObj[3].trim() + "@" + lineReactorObj[2].trim(),
+                    description: "NA",
+                    line_elem_num: lineReactorObj[3].trim(),
+                    elem_num: 1,
+                    ownerName: lineReactorObj[4].trim(),
+                    voltage: lineReactorObj[0].trim(),
+                    line_name: lineReactorObj[1].trim() + "-" + lineReactorObj[2].trim(),
+                    substation_names: [lineReactorObj[2].trim()],
+                    substation_voltages: [lineReactorObj[0]],
+                    sil: -1,
+                    thermal_limit: -1,
+                    stability_limit: -1,
+                    mvar: end2LrMvar,
+                    is_switchable: end2LrSwitchable,
+                    region: "WR",
+                    state: "NA"
+                };
+                if (tempObj.ownerName.trim() == "") {
+                    tempObj.ownerName = "NA";
+                }
+                lineReactors.push(tempObj);
+            }
+        }
+    }
+    console.log(lineReactors);
+    $.ajax({
+            //create substations through post request
+            url: "http://localhost:3000/api/line_reactors/create_array",
+            type: "POST",
+            data: JSON.stringify({lineReactors: lineReactors}),
+            contentType: 'application/json; charset=UTF-8',
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data["Error"]) {
+                    WriteLineConsole("Line Reactors couldn't be created, Error: " + JSON.stringify(data.Error));
+                } else {
+                    WriteLineConsole("Line Reactors created !!!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                WriteLineConsole("The Line Reactors are not created :-(");
             }
         }
     );

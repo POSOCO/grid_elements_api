@@ -58,6 +58,53 @@ exports.getAll = function (done) {
     })
 };
 
+exports.get = function (searchObj, done) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+    var sql = squel.select()
+        .from(tableName);
+    var expr = squel.expr();
+    if (searchObj.ids != undefined && searchObj.ids != null && searchObj.ids.constructor === Array) {
+        var ids = searchObj.ids;
+        var idsExpr = squel.expr();
+        for (var i = 0; i < ids.length; i++) {
+            idsExpr.or(tableAttributes[0] + " = ?", ids[i]);
+        }
+        expr.and(idsExpr);
+    }
+    if (searchObj.names != undefined && searchObj.names != null && searchObj.names.constructor === Array) {
+        var names = searchObj.names;
+        var namesExpr = squel.expr();
+        for (var i = 0; i < names.length; i++) {
+            namesExpr.or(tableAttributes[1] + " = ?", names[i]);
+        }
+        expr.and(namesExpr);
+    }
+    if (searchObj.voltages != undefined && searchObj.voltages != null && searchObj.voltages.constructor === Array) {
+        var voltages = searchObj.voltages;
+        var voltagesExpr = squel.expr();
+        for (var i = 0; i < voltages.length; i++) {
+            voltagesExpr.or(tableAttributes[7] + " = ?", voltages[i]);
+        }
+        expr.and(voltagesExpr);
+    }
+    if (searchObj.elem_nums != undefined && searchObj.elem_nums != null && searchObj.elem_nums.constructor === Array) {
+        var elem_nums = searchObj.elem_nums;
+        var elem_numsExpr = squel.expr();
+        for (var i = 0; i < elem_nums.length; i++) {
+            elem_numsExpr.or(tableAttributes[8] + " = ?", elem_nums[i]);
+        }
+        expr.and(elem_numsExpr);
+    }
+    sql.where(expr);
+    tempConn.query(sql.toParam().text, sql.toParam().values, function (err, rows) {
+        if (err) return done(err);
+        done(null, rows);
+    });
+};
+
 var getById = exports.getById = function (id, done, conn) {
     var tempConn = conn;
     if (conn == null) {
@@ -70,7 +117,7 @@ var getById = exports.getById = function (id, done, conn) {
         expr.and(tableAttributes[0] + " = ?", id);
     }
     sql.where(expr);
-    db.get().query(sql.toParam().text, sql.toParam().values, function (err, rows) {
+    tempConn.query(sql.toParam().text, sql.toParam().values, function (err, rows) {
         if (err) return done(err);
         done(null, rows);
     });

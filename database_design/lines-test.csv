@@ -1,2 +1,2 @@
-400,ACBIL,Bilaspur ,1,WRTS-1,ACBIL,WRTS-1,56,Twin ACSR Moose,517.1749023,31.08
-400,ACBIL,Bilaspur ,1,WRTS-1,ACBIL,WRTS-1,56,Twin ACSR Moose,517.1749023,31.08
+voltage,End-1,End-2,Id,Line Owner,End-1 Owner,End-2 Owner,Km,Conductor Type,SIL,No Load MVAR Generated,End1 LR MVAR,End1 LR S/W,End2 LR MVAR,End2 LR S/W,Thermal Limit,Stability Limit
+400,ACBIL,Bilaspur ,1,WRTS-1,ACBIL,WRTS-1,56,Twin ACSR Moose,517.1749023,31.08,,,,,,

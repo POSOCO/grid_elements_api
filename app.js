@@ -16,8 +16,8 @@ app.use(cors());
 
 app.use(cookieParser());
 
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({limit: '5mb', extended: false}));
+app.use(bodyParser.json({limit: '5mb'}));
 
 app.use(session({
     secret: 'anystringoftext',
@@ -51,6 +51,7 @@ app.use('/api/conductor_types', require('./project/controllers/conductor_type'))
 app.use('/api/owners', require('./project/controllers/owner'));
 app.use('/api/substations', require('./project/controllers/substation'));
 app.use('/api/lines', require('./project/controllers/line'));
+app.use('/api/line_reactors', require('./project/controllers/line_reactor'));
 app.use('/test/usertest', require('./project/controllers/testing'));
 app.use('/', require('./project/controllers/general'));
 
