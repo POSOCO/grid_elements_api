@@ -398,3 +398,117 @@ function createLineReactorsAsync() {
         }
     );
 }
+
+//function (name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, mvar, done, conn)
+function createBusReactorsAsync() {
+    var busReactorsArray = sReader.statesArrays[0];
+    var busReactors = [];
+    for (var i = 1; i < busReactorsArray.length; i++) {
+        var busReactorObj = busReactorsArray[i];
+        if (busReactorObj.length >= 4 && busReactorObj[0] != null && busReactorObj[0].trim() != "") {
+            var num50Mvar = 0; // 4th col
+            var num63Mvar = 0; // 5th col
+            var num80Mvar = 0; // 6th col
+            var num125Mvar = 0; // 7th col
+            var num240Mvar = 0; // 8th col
+            var num330Mvar = 0; // 9th col
+            var tempStr = busReactorObj[3].trim();
+            if (tempStr != "" && !isNaN(tempStr)) {
+                num50Mvar = tempStr;
+            }
+            tempStr = busReactorObj[4].trim();
+            if (tempStr != "" && !isNaN(tempStr)) {
+                num63Mvar = tempStr;
+            }
+            tempStr = busReactorObj[5].trim();
+            if (tempStr != "" && !isNaN(tempStr)) {
+                num80Mvar = tempStr;
+            }
+            tempStr = busReactorObj[6].trim();
+            if (tempStr != "" && !isNaN(tempStr)) {
+                num125Mvar = tempStr;
+            }
+            tempStr = busReactorObj[7].trim();
+            if (tempStr != "" && !isNaN(tempStr)) {
+                num240Mvar = tempStr;
+            }
+            tempStr = busReactorObj[8].trim();
+            if (tempStr != "" && !isNaN(tempStr)) {
+                num330Mvar = tempStr;
+            }
+            var objName = busReactorObj[0].trim();
+            var objVolt = busReactorObj[1].trim();
+            var objOwner = busReactorObj[2].trim();
+            var busReactor50MvarObjs = createBusReactorObjects(objName + "(50 MVAR)", objName, objVolt, -1, -1, -1, 50, objOwner, "NA", "NA", "NA", num50Mvar);
+            var busReactor63MvarObjs = createBusReactorObjects(objName + "(63 MVAR)", objName, objVolt, -1, -1, -1, 63, objOwner, "NA", "NA", "NA", num63Mvar);
+            var busReactor80MvarObjs = createBusReactorObjects(objName + "(80 MVAR)", objName, objVolt, -1, -1, -1, 80, objOwner, "NA", "NA", "NA", num80Mvar);
+            var busReactor125MvarObjs = createBusReactorObjects(objName + "(125 MVAR)", objName, objVolt, -1, -1, -1, 125, objOwner, "NA", "NA", "NA", num125Mvar);
+            var busReactor240MvarObjs = createBusReactorObjects(objName + "(240 MVAR)", objName, objVolt, -1, -1, -1, 240, objOwner, "NA", "NA", "NA", num240Mvar);
+            var busReactor330MvarObjs = createBusReactorObjects(objName + "(330 MVAR)", objName, objVolt, -1, -1, -1, 330, objOwner, "NA", "NA", "NA", num330Mvar);
+            busReactors = busReactors.concat(busReactor50MvarObjs);
+            busReactors = busReactors.concat(busReactor63MvarObjs);
+            busReactors = busReactors.concat(busReactor80MvarObjs);
+            busReactors = busReactors.concat(busReactor125MvarObjs);
+            busReactors = busReactors.concat(busReactor240MvarObjs);
+            busReactors = busReactors.concat(busReactor330MvarObjs);
+        }
+    }
+    console.log(busReactors);
+
+    $.ajax({
+            //create bus reactors through post request
+            url: "http://localhost:3000/api/bus_reactors/create_array",
+            type: "POST",
+            data: JSON.stringify({busReactors: busReactors}),
+            contentType: 'application/json; charset=UTF-8',
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data["Error"]) {
+                    WriteLineConsole("Bus Reactors couldn't be created, Error: " + JSON.stringify(data.Error));
+                } else {
+                    WriteLineConsole("Bus Reactors created !!!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, errorThrown);
+                WriteLineConsole("The Bus Reactors are not created :-(");
+            }
+        }
+    );
+
+}
+
+function createBusReactorObjects(name, substation, voltage, sil, thermal_limit, stability_limit, mvar, ownerName, region, state, description, num) {
+    var busReactors = [];
+    for (var i = 0; i < num; i++) {
+        var tempObj = {
+            name: name,
+            substation: substation,
+            voltage: voltage,
+            sil: sil,
+            thermal_limit: thermal_limit,
+            stability_limit: stability_limit,
+            mvar: mvar,
+            elem_num: i,
+            ownerName: ownerName,
+            region: region,
+            state: state,
+            description: description
+        };
+        if (tempObj.description.trim() == "") {
+            tempObj.description = "NA";
+        }
+        if (tempObj.ownerName.trim() == "") {
+            tempObj.ownerName = "NA";
+        }
+        if (tempObj.region.trim() == "") {
+            tempObj.region = "NA";
+        }
+        if (tempObj.state.trim() == "") {
+            tempObj.state = "NA";
+        }
+        busReactors.push(tempObj);
+    }
+    return busReactors;
+}

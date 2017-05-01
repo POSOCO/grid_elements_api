@@ -52,6 +52,7 @@ app.use('/api/owners', require('./project/controllers/owner'));
 app.use('/api/substations', require('./project/controllers/substation'));
 app.use('/api/lines', require('./project/controllers/line'));
 app.use('/api/line_reactors', require('./project/controllers/line_reactor'));
+app.use('/api/bus_reactors', require('./project/controllers/bus_reactor'));
 app.use('/test/usertest', require('./project/controllers/testing'));
 app.use('/', require('./project/controllers/general'));
 

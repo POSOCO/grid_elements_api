@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var BusReactor = require('../models/bus_reactor.js');
+var async = require("async");
 
 router.post('/create_from_csv', function (req, res, next) {
     //var name = req.body["name"];
@@ -52,5 +53,29 @@ function getDefaultIfNotDesired(x, desired, convert_to_number) {
     }
     return x;
 }
+
+router.post('/create_array', function (req, res, next) {
+    var busReactors = req.body["busReactors"];
+    //console.log("BusReactors create post request body object is " + JSON.stringify(req.body));
+    //console.log(busReactors);
+    var busReactorIterators = Array.apply(null, {length: busReactors.length}).map(Function.call, Number);
+    var getBusReactorId = function (busReactorIterator, callback) {
+        //function (name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, mvar, done, conn)
+        BusReactor.getWithCreation(busReactors[busReactorIterator]["name"], busReactors[busReactorIterator]["description"], busReactors[busReactorIterator]["sil"], busReactors[busReactorIterator]["stability_limit"], busReactors[busReactorIterator]["thermal_limit"], busReactors[busReactorIterator]["voltage"], busReactors[busReactorIterator]["elem_num"], busReactors[busReactorIterator]["ownerName"].split("/"), busReactors[busReactorIterator]["region"].split("/"), busReactors[busReactorIterator]["state"].split("/"), [busReactors[busReactorIterator]["substation"]], [busReactors[busReactorIterator]["voltage"]], busReactors[busReactorIterator]["mvar"], function (err, rows) {
+            if (err) {
+                return callback(err);
+            }
+            var busReactorId = rows[0].id;
+            //console.log(busReactorId);
+            callback(null, busReactorId);
+        }, null)
+    };
+    //finding each bus reactor Id
+    async.mapSeries(busReactorIterators, getBusReactorId, function (err, results) {
+        if (err) return next(err);
+        var busReactorIds = results;
+        res.json({busReactorIds: busReactorIds});
+    });
+});
 
 module.exports = router;
