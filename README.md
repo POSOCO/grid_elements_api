@@ -93,6 +93,8 @@ SELECT tag_id FROM tags WHERE tags=the_new_tags;
 10. Decide about the data duplication happening in elements_has_substations for substations
 11. Regions, States, Voltages, ElementTypes, ConductorTypes, Owners, Substations, Lines, Line Reactors, Bus reactors, ICTs csv UI -- done
 12. Create UI for FSCs and TCSCs
+13. Solve the line name bug (trying to insert B-A if A-B is already present)
+14. Make all names either capital/small/sentence case, preferably capital
 
 ## Links
 1. Google Docs page ---> https://docs.google.com/document/d/1xqxND1KHwLpGc3jCcYlq9GWiVnqFbHW_GvWrCmRioVY/edit?usp=sharing
