@@ -512,3 +512,61 @@ function createBusReactorObjects(name, substation, voltage, sil, thermal_limit, 
     }
     return busReactors;
 }
+
+//function (name, description, sil, stabilityLimit, thermalLimit, typeName, voltage, elem_num, ownerNames, ownerMetadatas, ownerRegions, regions, states, substationNames, substationVoltages, done, conn)
+function createIctsAsync() {
+    var ictsArray = sReader.statesArrays[0];
+    var icts = [];
+    for (var i = 1; i < ictsArray.length; i++) {
+        var ictObj = ictsArray[i];
+        if (ictObj.length >= 4 && ictObj[0] != null && ictObj[0].trim() != "") {
+            var elemSSName = ictObj[0].trim();
+            var elem_num = ictObj[1].trim();
+            var elem_MVA = ictObj[2].trim();
+            var elem_volt = ictObj[3].trim();
+            var elem_owner = ictObj[4].trim();
+            var elem_name = elemSSName + "(" + elem_MVA + " MVA)";
+            var tempObj = {
+                name: elem_name,
+                ownerName: elem_owner,
+                voltage: elem_volt,
+                region: "NA",
+                state: "NA",
+                description: "NA",
+                sil: -1,
+                stability_limit: -1,
+                thermal_limit: elem_MVA,
+                type: "ICT",
+                elem_num: elem_num,
+                substations: [elemSSName],
+                substationVoltages: [elem_volt.split('/')[0]]
+            };
+            if (tempObj.ownerName.trim() == "") {
+                tempObj.ownerName = "NA";
+            }
+            icts.push(tempObj);
+        }
+    }
+    console.log(icts);
+    $.ajax({
+            //create ICTs through post request
+            url: "http://localhost:3000/api/elements/create_array",
+            type: "POST",
+            data: JSON.stringify({elements: icts}),
+            contentType: 'application/json; charset=UTF-8',
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data["Error"]) {
+                    WriteLineConsole("ICTs couldn't be created, Error: " + JSON.stringify(data.Error));
+                } else {
+                    WriteLineConsole("ICTs created !!!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                WriteLineConsole("The ICTs are not created :-(");
+            }
+        }
+    );
+}
