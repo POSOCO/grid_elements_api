@@ -80,6 +80,30 @@ SELECT tag_id FROM tags WHERE tags=the_new_tags;
 4. Commit the [transaction](https://github.com/mysqljs/mysql#transactions)
 5. Return the created bus reactor id
 
+## Strategy for getting the Line elements from elements table
+1. The goal is not to depend on the name attribute of the elements table since the names are hard coded and 
+will not update themselves according to changes in substation names which can be a 
+serious bug (A-B, B-A bug also will be present)
+2. So the ideal strategy would be assign a GUID for line while it is created
+3. To get a line element from elements table, we would first do a left outer join of lines with substations table and concatenate substations with '|||'
+4. Then will call a select statement on the above table which has substations as 'SUB1/SUB2' or 'SUB2/SUB1' instead of using name as the search attribute
+5. The ideal way to implement this strategy would be to write a pre-insertion trigger routine so that the insertion would be server agnostic
+6. Otherwise we will have to implement this strategy in the server application program
+7. While displaying line elements, we will derive the line name from doing the table join just as the step 3 but keep the concatenate character as '-'
+8. That means the derived name of the element would be 'SUB1-SUB2'
+
+## Strategy for getting the Bus Reactor and ICT elements from elements table
+1. The strategy will be similar to [getting_the_Line_elements_from_elements_table](strategy_for_getting_the_line_elements_from_elements_table)
+2. So while creation we should ideally give GUID in name
+3. To get the element use the substation name instead of name from the joined table for querying
+4. While displaying the name of the element, use the substation name from joined table
+
+## Strategy for getting the Line Reactor, FSC and TCSC elements from elements table
+1. The strategy will be similar to [getting_the_Line_elements_from_elements_table](strategy_for_getting_the_line_elements_from_elements_table)
+2. So while creation we should ideally give GUID in name
+3. To get the element use the substation name and line element derived from the line reactor information instead of name from the joined table for querying
+4. While displaying the name of the element, use the substation name from joined table
+
 ## Todos
 1. Add end substation_id attribute to line reactor table -- done
 2. Modify element creation sql to handle zero to multiple owners -- done
