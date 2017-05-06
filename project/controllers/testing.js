@@ -97,4 +97,19 @@ router.get('/create_line_reactor', function (req, res, next) {
     }, null);
 });
 
+router.get('/get_line', function (req, res, next) {
+    //console.log((typeof req.user == 'undefined') ? "undefined" : req.user.username);
+    var name = req.query.name;
+    if (!name) {
+        name = "sudhir";
+    }
+    // voltage, elem_num, substationNames, substationVoltages, done, conn
+    Line.getLineElementIdByAttrs("765", 1, ["Wardha", "Seoni"], ["765", "765"], function (err, lineElems) {
+        if (err) {
+            return next(err);
+        }
+        res.json({'lines': lineElems});
+    }, null);
+});
+
 module.exports = router;

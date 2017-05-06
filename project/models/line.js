@@ -2,7 +2,10 @@ var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
 var NewSQLHelper = require('../helpers/newSQLHelper');
 var Element = require('./element');
+var ElementType = require('./element_type');
 var Conductor_Type = require('./conductor_type');
+var Substation = require('./substation');
+var Voltage = require('./voltage');
 
 var tableName = "`lines`";
 var tableAttributes = ["id", "elements_id", "conductor_types_id", "line_length", "noloadmvar"];
@@ -149,6 +152,131 @@ exports.create = function (name, description, voltage, conductorType, sil, lineN
     });
 };
 
+//create the element and get the elementId
+var getLineElementIdByAttrs = exports.getLineElementIdByAttrs = function (voltage, elem_num, substationNames, substationVoltages, done, conn) {
+    var tempConn = conn;
+    if (conn == null) {
+        tempConn = db.get();
+    }
+
+    var tempResults = {
+        lineElems: [],
+        lineTypeId: null,
+        ssTypeId: null,
+        voltageId: null,
+        ssIds: []
+    };
+
+    var getLineTypeId = function (callback) {
+        ElementType.getByTypeWithCreation("Line", function (err, rows) {
+            if (err) {
+                return callback(err);
+            }
+            var elemTypeId = rows[0].id;
+            tempResults.lineTypeId = elemTypeId;
+            callback(null, tempResults);
+        }, tempConn);
+    };
+
+    var getSSTypeId = function (prevRes, callback) {
+        ElementType.getByTypeWithCreation("Substation", function (err, rows) {
+            if (err) {
+                return callback(err);
+            }
+            var elemTypeId = rows[0].id;
+            prevRes.ssTypeId = elemTypeId;
+            callback(null, prevRes);
+        }, tempConn);
+    };
+
+    var getVoltageId = function (prevRes, callback) {
+        Voltage.getByLevelWithCreation(voltage, function (err, rows) {
+            if (err) {
+                return callback(err);
+            }
+            var voltageId = rows[0].id;
+            prevRes.voltageId = voltageId;
+            callback(null, prevRes);
+        }, tempConn);
+    };
+
+    var getSSIds = function (prevRes, callback) {
+        var elementNamesOrExp = squel.expr();
+        for (var i = 0; i < substationNames.length; i++) {
+            elementNamesOrExp.or(squel.expr().and(Element.tableColumnNames[1] + " = ?", substationNames[i]).and(Element.tableColumnNames[7] + " = ?", prevRes.voltageId));
+        }
+
+        var elemsWhereExp = squel.expr()
+            .and(Element.tableColumnNames[6] + " = ?", prevRes.ssTypeId)
+            .and(elementNamesOrExp);
+
+        var getSql = squel.select()
+            .field(Element.tableName + ".*")
+            .field(Substation.tableName + "." + Substation.tableColumnNames[0], "ss_id")
+            .from(Element.tableName)
+            .where(elemsWhereExp)
+            .join(Substation.tableName, null, "elements.id = substations.elements_id");
+
+        var query = getSql.toParam().text;
+        var vals = getSql.toParam().values;
+        //console.log(query);
+        //console.log(vals);
+        tempConn.query(query, vals, function (err, rows) {
+            if (err) return callback(err);
+            var ssRows = rows;
+            //console.log(ssRows);
+            for (var i = 0; i < ssRows.length; i++) {
+                prevRes.ssIds.push(ssRows[i].ss_id);
+            }
+            callback(null, prevRes);
+        });
+    };
+
+    // tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id", "elem_num"];
+    var getLineElems = function (prevRes, callback) {
+        var sql = "SELECT \
+* \
+FROM \
+( \
+SELECT \
+ss.substations_id AS ss_id, \
+el.*, \
+GROUP_CONCAT( \
+DISTINCT ss.substations_id \
+ORDER BY \
+ss.substations_id ASC SEPARATOR '|||' \
+) AS ss_ids \
+FROM \
+elements AS el \
+LEFT JOIN \
+elements_has_substations ss ON ss.elements_id = el.id \
+GROUP BY \
+el.id \
+ORDER BY \
+el.name ASC \
+) AS el_tb \
+WHERE \
+el_tb.ss_ids = ? AND el_tb.element_types_id = ? AND el_tb.voltages_id = ? AND el_tb.elem_num = ?";
+
+        var vals = [prevRes.ssIds.join('|||'), prevRes.lineTypeId, prevRes.voltageId, elem_num];
+        //console.log(sql);
+        //console.log(vals);
+        tempConn.query(sql, vals, function (err, rows) {
+            if (err) return callback(err);
+            var lineElemRows = rows;
+            //console.log(lineElemRows);
+            prevRes.lineElems = lineElemRows;
+            callback(null, prevRes);
+        });
+    };
+    //get the elements_
+    var functionsArray = [getLineTypeId, getSSTypeId, getVoltageId, getSSIds, getLineElems];
+    async.waterfall(functionsArray, function (err, prevRes) {
+        if (err) return done(err);
+        done(null, prevRes.lineElems);
+    });
+};
+
 var plainCreate = exports.plainCreate = function (element_id, cond_type, line_len, no_load_mvar, done, conn) {
     var tempConn = conn;
     if (conn == null) {
@@ -204,17 +332,41 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
         lines: []
     };
 
+    // find the line Element Id by attributes
+    var getLineElemIdByAttrs = function (callback) {
+        // stub
+        getLineElementIdByAttrs(voltage, elem_num, substationNames, substationVoltages, function (err, lineElems) {
+            if (err) return callback(err);
+            var elementId = null;
+            console.log("*************************************************************************************************");
+            //console.log(lineElems);
+            if (lineElems.length > 0) {
+                console.log("Line Already present...");
+                elementId = lineElems[0].id;
+            }
+            tempResults.elementId = elementId;
+            tempResults.elements = lineElems;
+            callback(null, tempResults);
+        }, tempConn);
+    };
+
     //create the element and get the elementId
-    var getElementId = function (callback) {
+    var getElementId = function (prevRes, callback) {
+        if (prevRes.elementId != null) {
+            console.log("Line Element creation avoided...");
+            return callback(null, prevRes);
+        }
+        console.log("*************************************************************************************************");
+        console.log("Line not present so creating a new one...");
         var ownerRegions = ownerNames.map(function (x) {
             return "NA";
         });
         Element.getWithCreation(name, description, sil, stabilityLimit, thermalLimit, "Line", voltage, elem_num, ownerNames, ownerNames, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
             if (err) return callback(err);
             var elementId = rows[0].id;
-            tempResults.elementId = elementId;
-            tempResults.elements = rows;
-            callback(null, tempResults);
+            prevRes.elementId = elementId;
+            prevRes.elements = rows;
+            callback(null, prevRes);
         }, tempConn)
     };
 
@@ -231,7 +383,7 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     };
 
     //create the elements_
-    var functionsArray = [getElementId, getLineId];
+    var functionsArray = [getLineElemIdByAttrs, getElementId, getLineId];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
         console.log("From Line Creation********************");

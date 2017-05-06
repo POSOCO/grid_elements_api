@@ -11,6 +11,9 @@ var async = require("async");
 var vsprintf = require("sprintf-js").vsprintf;
 //id is primary key
 
+exports.tableColumnNames = tableAttributes;
+exports.tableName = tableName;
+
 var substationIdSQLVar = "@substationid";
 exports.substationIdSQLVar = substationIdSQLVar;
 
