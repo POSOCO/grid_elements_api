@@ -147,8 +147,8 @@ var getBusReactorElementIdByAttrs = exports.getBusReactorElementIdByAttrs = func
     }
 
     var tempResults = {
-        ictElems: [],
-        ictTypeId: null,
+        brElems: [],
+        brTypeId: null,
         ssTypeId: null,
         voltageId: null,
         ssIds: []
@@ -160,7 +160,7 @@ var getBusReactorElementIdByAttrs = exports.getBusReactorElementIdByAttrs = func
                 return callback(err);
             }
             var elemTypeId = rows[0].id;
-            tempResults.ictTypeId = elemTypeId;
+            tempResults.brTypeId = elemTypeId;
             callback(null, tempResults);
         }, tempConn);
     };
@@ -248,14 +248,14 @@ el.name ASC \
 WHERE \
 el_tb.ss_ids = ? AND el_tb.element_types_id = ? AND el_tb.voltages_id = ? AND el_tb.elem_num = ? AND el_tb.mvar = ?";
 
-        var vals = [prevRes.ssIds.join('|||'), prevRes.ictTypeId, prevRes.voltageId, elem_num, mvar];
+        var vals = [prevRes.ssIds.join('|||'), prevRes.brTypeId, prevRes.voltageId, elem_num, mvar];
         //console.log(sql);
         //console.log(vals);
         tempConn.query(sql, vals, function (err, rows) {
             if (err) return callback(err);
             var brElemRows = rows;
             //console.log(brElemRows);
-            prevRes.ictElems = brElemRows;
+            prevRes.brElems = brElemRows;
             callback(null, prevRes);
         });
     };
@@ -263,7 +263,7 @@ el_tb.ss_ids = ? AND el_tb.element_types_id = ? AND el_tb.voltages_id = ? AND el
     var functionsArray = [getBrTypeId, getSSTypeId, getVoltageId, getSSIds, getBrElems];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
-        done(null, prevRes.ictElems);
+        done(null, prevRes.brElems);
     });
 };
 

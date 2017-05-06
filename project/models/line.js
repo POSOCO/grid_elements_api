@@ -219,8 +219,7 @@ var getLineElementIdByAttrs = exports.getLineElementIdByAttrs = function (voltag
 
         var query = getSql.toParam().text;
         var vals = getSql.toParam().values;
-        //console.log(query);
-        //console.log(vals);
+        console.log(getSql.toString());
         tempConn.query(query, vals, function (err, rows) {
             if (err) return callback(err);
             var ssRows = rows;
