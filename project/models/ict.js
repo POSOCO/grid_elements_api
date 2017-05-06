@@ -20,7 +20,8 @@ var getIctElementIdByAttrs = exports.getBusReactorElementIdByAttrs = function (v
         ictTypeId: null,
         ssTypeId: null,
         voltageId: null,
-        ssIds: []
+        ssIds: [],
+        ssVoltageIds: []
     };
 
     var getIctTypeId = function (callback) {
@@ -34,33 +35,114 @@ var getIctElementIdByAttrs = exports.getBusReactorElementIdByAttrs = function (v
         }, tempConn);
     };
 
-    var getVoltageId = function (prevRes, callback) {
-        Voltage.getByLevelWithCreation(voltage, function (err, rows) {
+    var getSSTypeId = function (prevRes, callback) {
+        ElementType.getByTypeWithCreation("Substation", function (err, rows) {
             if (err) {
                 return callback(err);
             }
-            var voltageId = rows[0].id;
-            prevRes.voltageId = voltageId;
+            var elemTypeId = rows[0].id;
+            prevRes.ssTypeId = elemTypeId;
             callback(null, prevRes);
         }, tempConn);
     };
 
+    var getVoltageId = function (prevRes, callback) {
+        var finalVoltages = substationVoltages;
+        finalVoltages.push(voltage);
+        //console.log(finalVoltages);
+        var voltIterators = Array.apply(null, {length: finalVoltages.length}).map(Function.call, Number);
+        var getVoltId = function (voltIterator, callback) {
+            Voltage.getByLevelWithCreation(finalVoltages[voltIterator], function (err, rows) {
+                if (err) {
+                    return callback(err);
+                }
+                var volt = rows[0];
+                callback(null, volt);
+            }, tempConn)
+        };
+
+        //finding each voltage Id
+        async.mapSeries(voltIterators, getVoltId, function (err, results) {
+            if (err) {
+                return callback(err);
+            }
+            var voltages = results;
+            if (voltages.length < 3) {
+                return callback(new Error("ICT voltage string is not of the form volt1/volt2"));
+            }
+            for (var i = 0; i < voltages.length; i++) {
+                if (voltages[i].level == voltage) {
+                    prevRes.voltageId = voltages[i].id;
+                } else {
+                    prevRes.ssVoltageIds.push(voltages[i].id);
+                }
+            }
+            callback(null, prevRes);
+        });
+    };
+
+    var getSSIds = function (prevRes, callback) {
+        var elementNamesOrExp = squel.expr();
+        for (var i = 0; i < voltage.split('/').length; i++) {
+            elementNamesOrExp.or(squel.expr().and(Element.tableColumnNames[1] + " = ?", substationNames[i]).and(Element.tableColumnNames[7] + " = ?", prevRes.ssVoltageIds[i]));
+        }
+
+        var elemsWhereExp = squel.expr()
+            .and(Element.tableColumnNames[6] + " = ?", prevRes.ssTypeId)
+            .and(elementNamesOrExp);
+
+        var getSql = squel.select()
+            .field(Element.tableName + ".*")
+            .field(Substation.tableName + "." + Substation.tableColumnNames[0], "ss_id")
+            .from(Element.tableName)
+            .where(elemsWhereExp)
+            .order('ss_id')
+            .join(Substation.tableName, null, "elements.id = substations.elements_id");
+
+        var query = getSql.toParam().text;
+        var vals = getSql.toParam().values;
+        //console.log(getSql.toString());
+        tempConn.query(query, vals, function (err, rows) {
+            if (err) return callback(err);
+            var ssRows = rows;
+            //console.log(ssRows);
+            for (var i = 0; i < ssRows.length; i++) {
+                prevRes.ssIds.push(ssRows[i].ss_id);
+            }
+            callback(null, prevRes);
+        });
+    };
+
     // tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id", "elem_num"];
     var getIctElems = function (prevRes, callback) {
-        //stub
-        var getSql = squel.select()
-            .from(Element.tableName)
-            .where(
-            squel.expr()
-                .and("element_types_id = ?", prevRes.ictTypeId)
-                .and("voltages_id = ?", prevRes.voltageId)
-                .and("elem_num = ?", elem_num)
-                .and("thermal_limit = ?", mvar)
-        );
+        var sql = "SELECT \
+* \
+FROM \
+( \
+SELECT \
+ss.substations_id AS ss_id, \
+el.*, \
+GROUP_CONCAT( \
+DISTINCT ss.substations_id \
+ORDER BY \
+ss.substations_id ASC SEPARATOR '|||' \
+) AS ss_ids \
+FROM \
+elements AS el \
+LEFT JOIN \
+elements_has_substations ss ON ss.elements_id = el.id \
+GROUP BY \
+el.id \
+ORDER BY \
+el.name ASC \
+) AS el_tb \
+WHERE \
+el_tb.ss_ids = ? AND el_tb.element_types_id = ? AND el_tb.voltages_id = ? AND el_tb.elem_num = ?";
 
-        var vals = [prevRes.ictTypeId, prevRes.voltageId, elem_num, mvar];
-        //console.log(getSql.toString());
-        tempConn.query(getSql.toParam().text, getSql.toParam().values, function (err, rows) {
+        var vals = [prevRes.ssIds.join('|||'), prevRes.ictTypeId, prevRes.voltageId, elem_num];
+        //console.log(sql);
+        //console.log(vals);
+        tempConn.query(sql, vals, function (err, rows) {
             if (err) return callback(err);
             var ictElemRows = rows;
             //console.log(ictElemRows);
@@ -69,7 +151,7 @@ var getIctElementIdByAttrs = exports.getBusReactorElementIdByAttrs = function (v
         });
     };
     //get the elements_
-    var functionsArray = [getIctTypeId, getVoltageId, getIctElems];
+    var functionsArray = [getIctTypeId, getSSTypeId, getVoltageId, getSSIds, getIctElems];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
         done(null, prevRes.ictElems);

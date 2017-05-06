@@ -81,6 +81,7 @@ var getLineReactorElementIdByAttrs = exports.getLineReactorElementIdByAttrs = fu
             .field(Substation.tableName + "." + Substation.tableColumnNames[0], "ss_id")
             .from(Element.tableName)
             .where(elemsWhereExp)
+            .order('ss_id')
             .join(Substation.tableName, null, "elements.id = substations.elements_id");
 
         var query = getSql.toParam().text;

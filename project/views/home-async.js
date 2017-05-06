@@ -539,8 +539,10 @@ function createIctsAsync() {
                 stability_limit: -1,
                 thermal_limit: elem_MVA,
                 elem_num: elem_num,
-                substations: [elemSSName],
-                substationVoltages: [elem_volt.split('/')[0]]
+                substations: elem_volt.split('/').map(function (x) {
+                    return elemSSName;
+                }),
+                substationVoltages: elem_volt.split('/')
             };
             if (tempObj.ownerName.trim() == "") {
                 tempObj.ownerName = "NA";
