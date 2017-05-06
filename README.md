@@ -92,7 +92,7 @@ serious bug (A-B, B-A bug also will be present)
 7. While displaying line elements, we will derive the line name from doing the table join just as the step 3 but keep the concatenate character as '-'
 8. That means the derived name of the element would be 'SUB1-SUB2'
 
-## Strategy for getting the Bus Reactor (-- done) and ICT elements from elements table
+## Strategy for getting the Bus Reactor and ICT elements from elements table -- done
 1. The strategy will be similar to [getting_the_Line_elements_from_elements_table](strategy_for_getting_the_line_elements_from_elements_table)
 2. So while creation we should ideally give GUID in name
 3. To get the element use the substation name instead of name from the joined table for querying
@@ -117,7 +117,7 @@ serious bug (A-B, B-A bug also will be present)
 10. Decide about the data duplication happening in elements_has_substations for substations
 11. Regions, States, Voltages, ElementTypes, ConductorTypes, Owners, Substations, Lines, Line Reactors, Bus reactors, ICTs csv UI -- done
 12. Create UI for FSCs and TCSCs
-13. Solve the line name bug (trying to insert B-A if A-B is already present)
+13. Solve the line name bug (trying to insert B-A if A-B is already present) -- done
 14. Make all names either capital/small/sentence case, preferably capital
 
 ## Links

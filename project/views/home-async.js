@@ -536,7 +536,6 @@ function createIctsAsync() {
                 sil: -1,
                 stability_limit: -1,
                 thermal_limit: elem_MVA,
-                type: "ICT",
                 elem_num: elem_num,
                 substations: [elemSSName],
                 substationVoltages: [elem_volt.split('/')[0]]
@@ -550,7 +549,7 @@ function createIctsAsync() {
     console.log(icts);
     $.ajax({
             //create ICTs through post request
-            url: "http://localhost:3000/api/elements/create_array",
+            url: "http://localhost:3000/api/icts/create_array",
             type: "POST",
             data: JSON.stringify({elements: icts}),
             contentType: 'application/json; charset=UTF-8',
