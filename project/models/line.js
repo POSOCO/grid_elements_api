@@ -334,7 +334,6 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
 
     // find the line Element Id by attributes
     var getLineElemIdByAttrs = function (callback) {
-        // stub
         getLineElementIdByAttrs(voltage, elem_num, substationNames, substationVoltages, function (err, lineElems) {
             if (err) return callback(err);
             var elementId = null;

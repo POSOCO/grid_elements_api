@@ -92,7 +92,7 @@ serious bug (A-B, B-A bug also will be present)
 7. While displaying line elements, we will derive the line name from doing the table join just as the step 3 but keep the concatenate character as '-'
 8. That means the derived name of the element would be 'SUB1-SUB2'
 
-## Strategy for getting the Bus Reactor and ICT elements from elements table
+## Strategy for getting the Bus Reactor (-- done) and ICT elements from elements table
 1. The strategy will be similar to [getting_the_Line_elements_from_elements_table](strategy_for_getting_the_line_elements_from_elements_table)
 2. So while creation we should ideally give GUID in name
 3. To get the element use the substation name instead of name from the joined table for querying

@@ -112,4 +112,19 @@ router.get('/get_line', function (req, res, next) {
     }, null);
 });
 
+router.get('/get_bus_reactor', function (req, res, next) {
+    //console.log((typeof req.user == 'undefined') ? "undefined" : req.user.username);
+    var name = req.query.name;
+    if (!name) {
+        name = "sudhir";
+    }
+    // voltage, elem_num, substationNames, substationVoltages, done, conn
+    BusReactor.getBusReactorElementIdByAttrs("400", 1, 125, ["sudhir"], ["400"], function (err, brElems) {
+        if (err) {
+            return next(err);
+        }
+        res.json({'bus_reactors': brElems});
+    }, null);
+});
+
 module.exports = router;
