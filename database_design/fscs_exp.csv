@@ -1,0 +1,11 @@
+End1,End2,Id,Voltage,Line Length,FSC Location,Compensation,Owner,region,state
+Seoni,Khandwa,1,400,350,Khandwa,40,WRTS-2,WR,
+Seoni,Khandwa,2,400,350,Khandwa,40,WRTS-2,WR,
+Rajgarh,Kasor,1,400,232,Rajgarh,25,WRTS-2,WR,
+Rajgarh,Kasor,2,400,232,Rajgarh,25,WRTS-2,WR,
+Raigarh,Raipur,3,400,220,Raipur,40,WRTS-1,WR,
+Raigarh,Raipur,4,400,220,Raipur,40,WRTS-1,WR,
+Adani,Sami,1,400,434,Sami ,40,APL,WR,
+Adani,Sami,2,400,434,Sami ,40,APL,WR,
+Raipur,Wardha,1,400,371,Wardha,40,WRTS-1,WR,
+Raipur,Wardha,2,400,371,Wardha,40,WRTS-1,WR,

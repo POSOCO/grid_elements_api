@@ -132,7 +132,7 @@ el_tb.ss_ids = ? AND el_tb.element_types_id = ? AND el_tb.voltages_id = ? AND el
         tempConn.query(sql, vals, function (err, rows) {
             if (err) return callback(err);
             var fscElemRows = rows;
-            console.log(fscElemRows);
+            //console.log(fscElemRows);
             prevRes.fscElems = fscElemRows;
             callback(null, prevRes);
         });
@@ -167,8 +167,8 @@ var plainCreate = exports.plainCreate = function (element_id, line_id, compensat
     );
     query += getSql.toParam().text;
     var vals = sql.toParam().values.concat(getSql.toParam().values);
-    console.log(query);
-    console.log(vals);
+    //console.log(query);
+    //console.log(vals);
     tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
         done(null, rows[1]);

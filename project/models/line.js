@@ -143,8 +143,8 @@ exports.create = function (name, description, voltage, conductorType, sil, lineN
     sql += delimiter;
     sql += "COMMIT" + delimiter;
     sql += "SELECT " + lineIdSQLVar + " AS lineId" + delimiter;
-    console.log(sql + "\n\n\n");
-    console.log(values);
+    //console.log(sql + "\n\n\n");
+    //console.log(values);
     db.get().query(sql, values, function (err, rows) {
         if (err) return done(err);
         //console.log(JSON.stringify(rows));
@@ -220,7 +220,7 @@ var getLineElementIdByAttrs = exports.getLineElementIdByAttrs = function (voltag
 
         var query = getSql.toParam().text;
         var vals = getSql.toParam().values;
-        console.log(getSql.toString());
+        //console.log(getSql.toString());
         tempConn.query(query, vals, function (err, rows) {
             if (err) return callback(err);
             var ssRows = rows;

@@ -104,6 +104,14 @@ serious bug (A-B, B-A bug also will be present)
 3. To get the element use the substation name and line element derived from the line reactor information instead of name from the joined table for querying
 4. While displaying the name of the element, use the substation name from joined table
 
+## Queries for users
+1. Get Substations info by name, voltage
+2. Get lines info by name, voltage, conductor type, terminal substations
+3. Get busReactors info by voltage, terminal substation, mvar
+4. Get lineReactors, fsc, tcsc info by voltage, terminal substation
+5. Get ict info by voltage ratio, terminal substation names/voltages 
+6. Get elements by name, voltage level, terminal substation, type
+
 ## Todos
 1. Add end substation_id attribute to line reactor table -- done
 2. Modify element creation sql to handle zero to multiple owners -- done
