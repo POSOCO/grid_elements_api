@@ -55,6 +55,7 @@ app.use('/api/line_reactors', require('./project/controllers/line_reactor'));
 app.use('/api/bus_reactors', require('./project/controllers/bus_reactor'));
 app.use('/api/elements', require('./project/controllers/element'));
 app.use('/api/icts', require('./project/controllers/ict'));
+app.use('/api/fscs', require('./project/controllers/fsc_tcsc'));
 app.use('/test/usertest', require('./project/controllers/testing'));
 app.use('/', require('./project/controllers/general'));
 

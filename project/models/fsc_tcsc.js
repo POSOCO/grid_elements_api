@@ -1,14 +1,13 @@
 var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
-var NewSQLHelper = require('../helpers/newSQLHelper');
 var Element = require('./element');
 var ElementType = require('./element_type');
 var Voltage = require('./voltage');
 var Substation = require('./substation');
 var Line = require('./line');
 
-var tableName = "line_reactors";
-var tableAttributes = ["id", "elements_id", "lines_id", "mvar", "is_switchable"];
+var tableName = "fsc_tcscs";
+var tableAttributes = ["id", "elements_id", "lines_id", "comp", "is_fsc"];
 var squel = require("squel");
 var async = require("async");
 var vsprintf = require("sprintf-js").vsprintf;
@@ -19,27 +18,27 @@ exports.tableColumnNames = tableAttributes;
 exports.tableName = tableName;
 
 //create the element and get the elementId
-var getLineReactorElementIdByAttrs = exports.getLineReactorElementIdByAttrs = function (voltage, elem_num, mvar, substationNames, substationVoltages, lines_id, done, conn) {
+var getFscElementIdByAttrs = exports.getLineReactorElementIdByAttrs = function (type, voltage, elem_num, fscComp, substationNames, substationVoltages, lines_id, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         tempConn = db.get();
     }
 
     var tempResults = {
-        lrElems: [],
-        lrTypeId: null,
+        fscElems: [],
+        fscTypeId: null,
         ssTypeId: null,
         voltageId: null,
         ssIds: []
     };
 
-    var getLrTypeId = function (callback) {
-        ElementType.getByTypeWithCreation("Line Reactor", function (err, rows) {
+    var getFscTypeId = function (callback) {
+        ElementType.getByTypeWithCreation(type, function (err, rows) {
             if (err) {
                 return callback(err);
             }
             var elemTypeId = rows[0].id;
-            tempResults.lrTypeId = elemTypeId;
+            tempResults.fscTypeId = elemTypeId;
             callback(null, tempResults);
         }, tempConn);
     };
@@ -99,7 +98,7 @@ var getLineReactorElementIdByAttrs = exports.getLineReactorElementIdByAttrs = fu
     };
 
     // tableAttributes = ["id", "name", "description", "sil", "stability_limit", "thermal_limit", "element_types_id", "voltages_id", "elem_num"];
-    var getLrElems = function (prevRes, callback) {
+    var getFscElems = function (prevRes, callback) {
         var sql = "SELECT \
 * \
 FROM \
@@ -107,8 +106,7 @@ FROM \
 SELECT \
 ss.substations_id AS ss_id, \
 el.*, \
-lr.mvar, \
-lr.lines_id, \
+fsc.lines_id, \
 GROUP_CONCAT( \
 DISTINCT ss.substations_id \
 ORDER BY \
@@ -119,35 +117,35 @@ elements AS el \
 LEFT JOIN \
 elements_has_substations ss ON ss.elements_id = el.id \
 LEFT JOIN \
-line_reactors lr ON lr.elements_id = el.id \
+fsc_tcscs fsc ON fsc.elements_id = el.id \
 GROUP BY \
 el.id \
 ORDER BY \
 el.name ASC \
 ) AS el_tb \
 WHERE \
-el_tb.ss_ids = ? AND el_tb.element_types_id = ? AND el_tb.voltages_id = ? AND el_tb.elem_num = ? AND el_tb.mvar = ? AND lines_id = ?";
+el_tb.ss_ids = ? AND el_tb.element_types_id = ? AND el_tb.voltages_id = ? AND el_tb.elem_num = ? AND lines_id = ?";
 
-        var vals = [prevRes.ssIds.join('|||'), prevRes.lrTypeId, prevRes.voltageId, elem_num, mvar, lines_id];
+        var vals = [prevRes.ssIds.join('|||'), prevRes.fscTypeId, prevRes.voltageId, elem_num, lines_id];
         //console.log(sql);
         //console.log(vals);
         tempConn.query(sql, vals, function (err, rows) {
             if (err) return callback(err);
-            var lrElemRows = rows;
-            console.log(lrElemRows);
-            prevRes.lrElems = lrElemRows;
+            var fscElemRows = rows;
+            console.log(fscElemRows);
+            prevRes.fscElems = fscElemRows;
             callback(null, prevRes);
         });
     };
     //get the elements_
-    var functionsArray = [getLrTypeId, getSSTypeId, getVoltageId, getSSIds, getLrElems];
+    var functionsArray = [getFscTypeId, getSSTypeId, getVoltageId, getSSIds, getFscElems];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
-        done(null, prevRes.lrElems);
+        done(null, prevRes.fscElems);
     });
 };
 
-var plainCreate = exports.plainCreate = function (element_id, line_id, mvar, is_switchable, done, conn) {
+var plainCreate = exports.plainCreate = function (element_id, line_id, compensation, is_fsc, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         tempConn = db.get();
@@ -156,8 +154,8 @@ var plainCreate = exports.plainCreate = function (element_id, line_id, mvar, is_
         .into(tableName)
         .set(tableAttributes[1], element_id)
         .set(tableAttributes[2], line_id)
-        .set(tableAttributes[3], mvar)
-        .set(tableAttributes[4], is_switchable);
+        .set(tableAttributes[3], compensation)
+        .set(tableAttributes[4], is_fsc);
     var query = sql.toParam().text;
     //query += " ON DUPLICATE KEY UPDATE name = name;";
     query += vsprintf(" ON DUPLICATE KEY UPDATE %s = %s;", [tableAttributes[1], tableAttributes[1]]);
@@ -169,15 +167,16 @@ var plainCreate = exports.plainCreate = function (element_id, line_id, mvar, is_
     );
     query += getSql.toParam().text;
     var vals = sql.toParam().values.concat(getSql.toParam().values);
-    //console.log(query);
-    //console.log(vals);
+    console.log(query);
+    console.log(vals);
     tempConn.query(query, vals, function (err, rows) {
         if (err) return done(err);
         done(null, rows[1]);
     });
 };
 
-var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_name, line_substations, line_volt, line_num, mvar, is_switchable, done, conn) {
+// name, description, type, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_substations, line_volt, line_num, fscComp
+var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransaction = function (name, description, type, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_substations, line_volt, line_num, fscComp, done, conn) {
     // create line reactor and get the element id
     var tempConn = conn;
     if (conn == null) {
@@ -186,16 +185,16 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     var tempResults = {
         elementId: null,
         lineId: null,
-        lineReactorId: null,
+        fscId: null,
         elements: [],
-        lineReactors: []
+        fscs: []
     };
 
     var getLineId = function (callback) {
         var lineVoltages = line_substations.map(function (x) {
             return line_volt;
         });
-        Line.getWithCreation(line_name, line_name, -1, -1, -1, line_volt, line_num, [], [], [], line_substations, lineVoltages, "NA", -1, -1, function (err, rows) {
+        Line.getWithCreation(line_substations.join("-") + "-" + line_num, "NA", -1, -1, -1, line_volt, line_num, [], [], [], line_substations, lineVoltages, "NA", -1, -1, function (err, rows) {
             if (err) return callback(err);
             var lineId = rows[0].id;
             tempResults.lineId = lineId;
@@ -204,18 +203,18 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     };
 
     // find the line Element Id by attributes
-    var getLrElemIdByAttrs = function (prevRes, callback) {
-        getLineReactorElementIdByAttrs(line_volt, elem_num, mvar, substationNames, substationVoltages, prevRes.lineId, function (err, lrElems) {
+    var getFscElemIdByAttrs = function (prevRes, callback) {
+        getFscElementIdByAttrs(type, line_volt, elem_num, fscComp, substationNames, substationVoltages, prevRes.lineId, function (err, fscElems) {
             if (err) return callback(err);
             var elementId = null;
             console.log("*************************************************************************************************");
-            //console.log(lrElems);
-            if (lrElems.length > 0) {
-                console.log("Line Reactor Already present...");
-                elementId = lrElems[0].id;
+            //console.log(fscElems);
+            if (fscElems.length > 0) {
+                console.log(type + " Already present...");
+                elementId = fscElems[0].id;
             }
             prevRes.elementId = elementId;
-            prevRes.elements = lrElems;
+            prevRes.elements = fscElems;
             callback(null, tempResults);
         }, tempConn);
     };
@@ -223,15 +222,15 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
     //create the element and get the elementId
     var getElementId = function (prevRes, callback) {
         if (prevRes.elementId != null) {
-            console.log("Line Reactor Element creation avoided...");
+            console.log(type + " Element creation avoided...");
             return callback(null, prevRes);
         }
         console.log("*************************************************************************************************");
-        console.log("Line Reactor not present so creating a new one...");
+        console.log(type + " not present so creating a new one...");
         var ownerRegions = ownerNames.map(function (x) {
             return "NA";
         });
-        Element.getWithCreation(name, description, sil, stabilityLimit, thermalLimit, "Line Reactor", line_volt, elem_num, ownerNames, ownerNames, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
+        Element.getWithCreation(name, description, sil, stabilityLimit, thermalLimit, type, line_volt, elem_num, ownerNames, ownerNames, ownerRegions, regions, states, substationNames, substationVoltages, function (err, rows) {
             if (err) return callback(err);
             var elementId = rows[0].id;
             tempResults.elementId = elementId;
@@ -240,29 +239,35 @@ var getWithCreationWithoutTransaction = exports.getWithCreationWithoutTransactio
         }, tempConn);
     };
 
-    var getLineReactorId = function (prevRes, callback) {
-        plainCreate(prevRes.elementId, prevRes.lineId, mvar, is_switchable, function (err, rows) {
+    var getFscId = function (prevRes, callback) {
+        var isFsc = null;
+        if (type == "FSC") {
+            isFsc = 1;
+        } else if (type == "TCSC") {
+            isFsc = 0;
+        }
+        plainCreate(prevRes.elementId, prevRes.lineId, fscComp, isFsc, function (err, rows) {
             if (err) return callback(err);
-            var lineReactorId = rows[0].id;
-            tempResults.lineReactorId = lineReactorId;
-            tempResults.lineReactors = rows;
-            prevRes.lineReactorId = lineReactorId;
-            prevRes.lineReactors = rows;
+            var fscId = rows[0].id;
+            tempResults.fscId = fscId;
+            tempResults.fscs = rows;
+            prevRes.fscId = fscId;
+            prevRes.fscs = rows;
             callback(null, prevRes);
         }, tempConn);
     };
 
     //create the elements_
-    var functionsArray = [getLineId, getLrElemIdByAttrs, getElementId, getLineReactorId];
+    var functionsArray = [getLineId, getFscElemIdByAttrs, getElementId, getFscId];
     async.waterfall(functionsArray, function (err, prevRes) {
         if (err) return done(err);
-        console.log("From Line Reactor Creation********************");
+        console.log("From " + type + " Creation********************");
         console.log(prevRes);
-        done(null, prevRes.lineReactors);
+        done(null, prevRes.fscs);
     });
 };
 
-var getWithCreation = exports.getWithCreation = function (name, description, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_name, line_substations, line_volt, line_num, mvar, is_switchable, done, conn) {
+var getWithCreation = exports.getWithCreation = function (name, description, type, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_substations, line_volt, line_num, fscComp, done, conn) {
     var tempConn = conn;
     if (conn == null) {
         db.getPoolConnection(function (err, poolConnection) {
@@ -274,7 +279,7 @@ var getWithCreation = exports.getWithCreation = function (name, description, sil
                     tempConn.release();
                     return done(err);
                 }
-                getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_name, line_substations, line_volt, line_num, mvar, is_switchable, function (err, rows) {
+                getWithCreationWithoutTransaction(name, description, type, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_substations, line_volt, line_num, fscComp, function (err, rows) {
                     if (err) {
                         //console.log("error in owner name creation...");
                         tempConn.rollback(function () {
@@ -301,7 +306,7 @@ var getWithCreation = exports.getWithCreation = function (name, description, sil
             });
         });
     } else {
-        getWithCreationWithoutTransaction(name, description, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_name, line_substations, line_volt, line_num, mvar, is_switchable, function (err, rows) {
+        getWithCreationWithoutTransaction(name, description, type, sil, stabilityLimit, thermalLimit, elem_num, ownerNames, regions, states, substationNames, substationVoltages, line_substations, line_volt, line_num, fscComp, function (err, rows) {
             if (err) return done(err);
             done(null, rows);
         }, tempConn);

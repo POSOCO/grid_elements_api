@@ -573,3 +573,75 @@ function createIctsAsync() {
         }
     );
 }
+
+//function (name, description, sil, stabilityLimit, thermalLimit, voltage, elem_num, ownerNames, regions, states, substationNames, substationVoltages, mvar, done, conn)
+function createFscsAsync(isFsc) {
+    var typeName = "FSC";
+    if (isFsc == 0) {
+        typeName = "TCSC";
+    } else if (isFsc == 1) {
+        typeName = "FSC";
+    } else {
+        console.log("createFscsAsync function argument not equal to 0 or 1");
+        return;
+    }
+    var fscsArray = sReader.statesArrays[0];
+    var fscs = [];
+    for (var i = 1; i < fscsArray.length; i++) {
+        var fscObj = fscsArray[i];
+        if (fscObj.length >= 8 && fscObj[0] != null && fscObj[0].trim() != "") {
+            var line_end1 = fscObj[0].trim();
+            var line_end2 = fscObj[1].trim();
+            var line_elem_num = fscObj[2].trim();
+            var objVolt = fscObj[3].trim();
+            var objComp = fscObj[6].trim();
+            var objSubstation = fscObj[5].trim();
+            var objOwner = fscObj[7].trim();
+            var objRegion = fscObj[8].trim();
+            var objState = fscObj[9].trim();
+            var objName = line_end1 + "-" + line_end2 + "-" + line_elem_num + "@" + objSubstation;
+            fscs.push({
+                name: objName,
+                substation_names: [objSubstation],
+                substation_voltages: [objVolt],
+                type: typeName,
+                sil: -1,
+                thermal_limit: -1,
+                stability_limit: -1,
+                comp: objComp,
+                elem_num: 1,
+                line_substations: [line_end1, line_end2],
+                line_voltage: objVolt,
+                line_elem_num: line_elem_num,
+                ownerName: objOwner,
+                region: objRegion,
+                state: objState,
+                description: objName
+            });
+        }
+    }
+    console.log(fscs);
+
+    $.ajax({
+            //create bus reactors through post request
+            url: "http://localhost:3000/api/fscs/create_array",
+            type: "POST",
+            data: JSON.stringify({fscs: fscs}),
+            contentType: 'application/json; charset=UTF-8',
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                if (data["Error"]) {
+                    WriteLineConsole(typeName + "s couldn't be created, Error: " + JSON.stringify(data.Error));
+                } else {
+                    WriteLineConsole(typeName + "s created !!!");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR, errorThrown);
+                WriteLineConsole("The " + typeName + "s are not created :-(");
+            }
+        }
+    );
+
+}

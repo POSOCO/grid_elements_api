@@ -98,7 +98,7 @@ serious bug (A-B, B-A bug also will be present)
 3. To get the element use the substation name instead of name from the joined table for querying
 4. While displaying the name of the element, use the substation name from joined table
 
-## Strategy for getting the Line Reactor (-- done), FSC and TCSC elements from elements table
+## Strategy for getting the Line Reactor, FSC and TCSC elements from elements table -- done
 1. The strategy will be similar to [getting_the_Line_elements_from_elements_table](strategy_for_getting_the_line_elements_from_elements_table)
 2. So while creation we should ideally give GUID in name
 3. To get the element use the substation name and line element derived from the line reactor information instead of name from the joined table for querying
