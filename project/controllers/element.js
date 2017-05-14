@@ -4,12 +4,25 @@ var Element = require('../models/element.js');
 var async = require("async");
 
 router.get('/', function (req, res, next) {
-    Element.getAll(function (err, rows) {
+    var whereCols = req.query.cols;
+    var whereOperators = req.query.operators;
+    var whereValues = req.query.values;
+    if (typeof whereCols == 'undefined' || whereCols == null) {
+        whereCols = [];
+    }
+    if (typeof whereOperators == 'undefined' || whereOperators == null) {
+        whereOperators = [];
+    }
+    if (typeof whereValues == 'undefined' || whereValues == null) {
+        whereValues = [];
+    }
+    Element.getAll(whereCols, whereOperators, whereValues, 50, 0, null, null, function (err, rows) {
         if (err) {
+            console.log(err);
             return next(err);
         }
-        res.json({'elements': rows});
-    });
+        res.json({'data': rows});
+    }, null);
 });
 
 router.get('/get_by_name', function (req, res, next) {

@@ -23,6 +23,17 @@ An API for grid elements with apps using the API
 
 3. Use `multipleStatements: true` in the mysql connection arguments to execute multiple statements
 4. MySQL transaction example using connection pooling [link](http://stackoverflow.com/questions/37246997/nodejs-node-mysql-transaction-with-a-loop)
+5. General SQL clause
+```sql
+SELECT column1, column2
+FROM table_name
+WHERE [ conditions ]
+GROUP BY column1, column2
+ORDER BY column1, column2
+LIMIT offset, num_rows
+```
+6. To convert multi line sql string for variable, paste the sql in notepad++ and replace ```[\r\n]+``` with ``` \\\r\n```
+7. Element get url ```http://localhost:3000/api/elements?cols[0]=elements_ss_table.name&operators[0]=LIKE&values[0]=akola&cols[1]=element_types.type&operators[1]==&values[1]=line&cols[2]=voltages.level&operators[2]==&values[2]=400```
 
 ## <a name="insert_if_absent_and_get_id_strategy"></a> Strategy for insert of not present and get id
 ```sql
