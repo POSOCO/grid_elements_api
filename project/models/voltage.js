@@ -1,6 +1,6 @@
 var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
-var tableName  = "voltages";
+var tableName = "voltages";
 var tableAttributes = ["id", "level"];
 var squel = require("squel");
 //id is primary key
@@ -10,14 +10,14 @@ exports.tableColumnNames = tableAttributes;
 exports.tableName = tableName;
 
 exports.getAll = function (done) {
-    db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [], []), function (err, rows) {
+    db.get().query(squel.select().from(tableName).toString(), function (err, rows) {
         if (err) return done(err);
         done(null, rows);
-    })
+    });
 };
 
 exports.getByLevel = function (level, done) {
-    db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [tableAttributes[1]], ['=']), [level], function (err, rows) {
+    db.get().query(squel.select().from(tableName).where(tableAttributes[1] + " = ?", level).toString(), [level], function (err, rows) {
         if (err) return done(err);
         done(null, rows);
     });

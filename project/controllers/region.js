@@ -8,7 +8,7 @@ router.get('/', function (req, res, next) {
         if (err) {
             return next(err);
         }
-        res.json({'regions': rows});
+        res.json({'data': rows});
     });
 });
 
@@ -18,7 +18,7 @@ router.get('/get_by_name', function (req, res, next) {
         if (err) {
             return next(err);
         }
-        res.json({'region': rows});
+        res.json({'data': rows});
     });
 });
 

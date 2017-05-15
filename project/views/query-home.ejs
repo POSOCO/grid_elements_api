@@ -23,6 +23,9 @@
     <!-- Animation Css -->
     <link href="plugins/animate-css/animate.css" rel="stylesheet"/>
 
+    <!-- Bootstrap Select Css -->
+    <link href="../../plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
+
     <!-- JQuery DataTable Css -->
     <link href="plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
 
@@ -70,24 +73,30 @@
                         <table class="table">
                             <tr>
                                 <td>
-                                    <label for="name_search_str">Name</label>
+                                    <label for="name_search_str">Name</label><br>
                                     <input type="text" id="name_search_str" value="">
                                 </td>
                                 <td>
                                     <label for="type_search_str">Type</label>
-                                    <input type="text" id="type_search_str" value="">
+                                    <select name="type_search_str" id="type_search_str" class="form-control show-tick">
+                                        <option value="">-- Please select --</option>
+                                    </select>
                                 </td>
                                 <td>
                                     <label for="volt_level_search_str">Voltage</label>
-                                    <input type="text" id="volt_level_search_str" value="">
+                                    <select name="volt_level_search_str" id="volt_level_search_str" class="form-control show-tick">
+                                        <option value="">-- Please select --</option>
+                                    </select>
                                 </td>
                                 <td>
-                                    <label for="owner_search_str">Owner</label>
+                                    <label for="owner_search_str">Owner</label><br>
                                     <input type="text" id="owner_search_str" value="">
                                 </td>
                                 <td>
                                     <label for="region_search_str">Region</label>
-                                    <input type="text" id="region_search_str" value="">
+                                    <select name="region_search_str" id="region_search_str" class="form-control show-tick">
+                                        <option value="">-- Please select --</option>
+                                    </select>
                                 </td>
                             </tr>
                             <tr>

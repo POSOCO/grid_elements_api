@@ -11,14 +11,14 @@ exports.tableColumnNames = tableAttributes;
 exports.tableName = tableName;
 
 exports.getAll = function (done) {
-    db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [], []), function (err, rows) {
+    db.get().query(squel.select().from(tableName).toString(), function (err, rows) {
         if (err) return done(err);
         done(null, rows);
     })
 };
 
 exports.getByName = function (name, done) {
-    db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], ['name'], ['=']), [name], function (err, rows) {
+    db.get().query(squel.select().from(tableName).where(tableAttributes[1] + " = ?", name).toString(), [name], function (err, rows) {
         if (err) return done(err);
         done(null, rows);
     });

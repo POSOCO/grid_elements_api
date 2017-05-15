@@ -1,6 +1,6 @@
 var db = require('../db.js');
 var SQLHelper = require('../helpers/sqlHelper');
-var tableName  = "element_types";
+var tableName = "element_types";
 var tableAttributes = ["id", "type"];
 //id is primary key
 //type is unique
@@ -9,14 +9,14 @@ exports.tableColumnNames = tableAttributes;
 exports.tableName = tableName;
 
 exports.getAll = function (done) {
-    db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [], []), function (err, rows) {
+    db.get().query(squel.select().from(tableName).toString(), function (err, rows) {
         if (err) return done(err);
         done(null, rows);
     })
 };
 
 exports.getByType = function (type, done) {
-    db.get().query(SQLHelper.createSQLGetString(tableName, ['*'], [tableAttributes[1]], ['=']), [type], function (err, rows) {
+    db.get().query(squel.select().from(tableName).where(tableAttributes[1] + " = ?", type).toString(), [type], function (err, rows) {
         if (err) return done(err);
         done(null, rows);
     });

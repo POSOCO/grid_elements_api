@@ -3,7 +3,7 @@ window.onload = function () {
     $('#example').DataTable({
         responsive: true,
         "data": data,
-        "order": [[ 1, "asc" ]],
+        "order": [[1, "asc"]],
         "columns": [
             {"data": "id"},
             {"data": "name"},
@@ -18,6 +18,9 @@ window.onload = function () {
         ]
     });
     refreshTableData();
+    getTypesFromServer();
+    getVoltagesFromServer();
+    getRegionsFromServer();
 };
 
 function refreshTableData() {
@@ -50,4 +53,84 @@ function refreshTableData() {
             console.log(errorThrown);
         }
     });
+}
+
+function getTypesFromServer() {
+    $.ajax({
+        url: "/api/element_types/",
+        type: 'GET',
+        success: function (result) {
+            //toastr["info"]("Data received from server");
+            console.log(result);
+            var dataArray = result.data;
+            if (typeof dataArray != 'undefined' && dataArray != null && dataArray.constructor === Array && dataArray.length > 0) {
+                document.getElementById('type_search_str').innerHTML = "";
+                appendOptionsToSelectBox("type_search_str", "", "-- Please select --");
+                for (var i = 0; i < dataArray.length; i++) {
+                    appendOptionsToSelectBox("type_search_str", dataArray[i].type, dataArray[i].type);
+                }
+                $('#type_search_str').selectpicker('refresh');
+            }
+        },
+        error: function (textStatus, errorThrown) {
+            console.log(textStatus);
+            console.log(errorThrown);
+        }
+    });
+}
+
+function getVoltagesFromServer() {
+    $.ajax({
+        url: "/api/voltages/",
+        type: 'GET',
+        success: function (result) {
+            //toastr["info"]("Data received from server");
+            console.log(result);
+            var dataArray = result.data;
+            if (typeof dataArray != 'undefined' && dataArray != null && dataArray.constructor === Array && dataArray.length > 0) {
+                document.getElementById('volt_level_search_str').innerHTML = "";
+                appendOptionsToSelectBox("volt_level_search_str", "", "-- Please select --");
+                for (var i = 0; i < dataArray.length; i++) {
+                    appendOptionsToSelectBox("volt_level_search_str", dataArray[i].level, dataArray[i].level);
+                }
+                $('#volt_level_search_str').selectpicker('refresh');
+            }
+        },
+        error: function (textStatus, errorThrown) {
+            console.log(textStatus);
+            console.log(errorThrown);
+        }
+    });
+}
+
+function getRegionsFromServer(){
+    $.ajax({
+        url: "/api/regions/",
+        type: 'GET',
+        success: function (result) {
+            //toastr["info"]("Data received from server");
+            console.log(result);
+            var dataArray = result.data;
+            if (typeof dataArray != 'undefined' && dataArray != null && dataArray.constructor === Array && dataArray.length > 0) {
+                document.getElementById('region_search_str').innerHTML = "";
+                appendOptionsToSelectBox("region_search_str", "", "-- Please select --");
+                for (var i = 0; i < dataArray.length; i++) {
+                    appendOptionsToSelectBox("region_search_str", dataArray[i].name, dataArray[i].name);
+                }
+                $('#region_search_str').selectpicker('refresh');
+            }
+        },
+        error: function (textStatus, errorThrown) {
+            console.log(textStatus);
+            console.log(errorThrown);
+        }
+    });
+}
+
+function appendOptionsToSelectBox(selectBoxId, optionValue, optionText) {
+    var option = document.createElement("option");
+    option.text = optionText;
+    option.value = optionValue;
+    var select = document.getElementById(selectBoxId);
+    select.appendChild(option);
 }
