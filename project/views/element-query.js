@@ -13,6 +13,7 @@ window.onload = function () {
             {"data": "owner_names"},
             {"data": "region_names"},
             {"data": "ss_names"},
+            {"data": "elem_num"},
             {"data": "ss_owner_names"},
             {"data": "ss_region_names"}
         ]
