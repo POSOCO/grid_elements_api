@@ -4,19 +4,60 @@ var Element = require('../models/element.js');
 var async = require("async");
 
 router.get('/', function (req, res, next) {
-    var whereCols = req.query.cols;
-    var whereOperators = req.query.operators;
-    var whereValues = req.query.values;
-    if (typeof whereCols == 'undefined' || whereCols == null) {
-        whereCols = [];
+    var whereCols = [];
+    var whereOperators = [];
+    var whereValues = [];
+    var limit_rows = req.query.limit_rows;
+    var rows_page = req.query.offset_page;
+    var type = req.query.type;
+    var owner = req.query.owner;
+    var region = req.query.region;
+    var volt = req.query.voltage;
+    var name_str = req.query.name;
+
+    var rows_offset = 0;
+
+    if (typeof name_str != 'undefined' && name_str.trim() != "") {
+        whereCols.push('elems_table.ss_names');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + name_str + "%");
+        whereCols.push('elems_table.name');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + name_str + "%");
     }
-    if (typeof whereOperators == 'undefined' || whereOperators == null) {
-        whereOperators = [];
+    if (typeof owner != 'undefined' && owner.trim() != "") {
+        whereCols.push('elems_table.owner_names');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + owner + "%");
+        whereCols.push('elems_table.ss_owner_names');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + owner + "%");
     }
-    if (typeof whereValues == 'undefined' || whereValues == null) {
-        whereValues = [];
+    if (typeof region != 'undefined' && region.trim() != "") {
+        whereCols.push('elems_table.region_names');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + region + "%");
+        whereCols.push('elems_table.ss_region_names');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + region + "%");
     }
-    Element.getAll(whereCols, whereOperators, whereValues, 50, 0, null, null, function (err, rows) {
+    if (typeof volt != 'undefined' && volt.trim() != "") {
+        whereCols.push('elems_table.level');
+        whereOperators.push('=');
+        whereValues.push(volt);
+    }
+    if (typeof type != 'undefined' && type.trim() != "") {
+        whereCols.push('elems_table.type');
+        whereOperators.push('=');
+        whereValues.push(type);
+    }
+    if (typeof limit_rows == 'undefined' || isNaN(limit_rows) || limit_rows < 0) {
+        limit_rows = 50;
+    }
+    if (typeof rows_page != 'undefined' && rows_page != null && rows_page > 0) {
+        rows_offset = limit_rows * rows_page;
+    }
+    Element.getAll(whereCols, whereOperators, whereValues, limit_rows, rows_offset, null, null, function (err, rows) {
         if (err) {
             console.log(err);
             return next(err);

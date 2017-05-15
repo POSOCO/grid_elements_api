@@ -58,128 +58,182 @@ exports.getAll = function (whereCols, whereOperators, whereValues, limit, offset
         tempConn = db.get();
     }
     var mainSql = "SELECT \
-  elements_ss_table.*, \
-  voltages.level, \
-  element_types.type, \
-  element_owners.owner_names, \
-  element_regions.region_names, \
-  GROUP_CONCAT( \
-      DISTINCT ss_table.name \
-      ORDER BY \
-      ss_table.name ASC SEPARATOR '-' \
-  ) AS ss_names, \
-  GROUP_CONCAT( \
-      DISTINCT ss_table.ss_owner_names \
-      ORDER BY \
-      ss_table.ss_owner_names ASC SEPARATOR ',' \
-  ) AS ss_owner_names, \
-  GROUP_CONCAT( \
-      DISTINCT ss_table.ss_region_names \
-      ORDER BY \
-      ss_table.ss_region_names ASC SEPARATOR ',' \
-  ) AS ss_region_names, \
-  GROUP_CONCAT( \
-      DISTINCT ss_table.id \
-      ORDER BY \
-      ss_table.id ASC SEPARATOR '|||' \
-  ) AS ss_ids \
+  * \
 FROM \
   ( \
+  SELECT \
+    elements_ss_table.*, \
+    voltages.level, \
+    element_types.type, \
+    element_owners.owner_names, \
+    element_regions.region_names, \
+    GROUP_CONCAT( \
+      DISTINCT ss_table.name \
+    ORDER BY \
+      ss_table.name ASC SEPARATOR '-' \
+    ) AS ss_names, \
+    GROUP_CONCAT( \
+      DISTINCT ss_table.ss_owner_names \
+    ORDER BY \
+      ss_table.ss_owner_names ASC SEPARATOR ',' \
+    ) AS ss_owner_names, \
+    GROUP_CONCAT( \
+      DISTINCT ss_table.ss_region_names \
+    ORDER BY \
+      ss_table.ss_region_names ASC SEPARATOR ',' \
+    ) AS ss_region_names, \
+    GROUP_CONCAT( \
+      DISTINCT ss_table.id \
+    ORDER BY \
+      ss_table.id ASC SEPARATOR '|||' \
+    ) AS ss_ids \
+  FROM \
+    ( \
     SELECT \
       elements.*, \
       elements_has_substations.substations_id \
     FROM \
       elements \
-      LEFT JOIN \
+    LEFT JOIN \
       elements_has_substations ON elements_has_substations.elements_id = elements.id \
   ) AS elements_ss_table \
-  LEFT JOIN \
+LEFT JOIN \
   ( \
-    SELECT \
-      substations.id, \
-      substations.elements_id, \
-      elements.name, \
-      elements.voltages_id, \
-      elements.elem_num, \
-      ss_owners.ss_owner_names, \
-      ss_regions.ss_region_names \
-    FROM \
-      substations \
-      INNER JOIN \
-      elements ON substations.elements_id = elements.id \
-      LEFT JOIN \
-      ( \
-        SELECT \
-          elements_has_owners.elements_id, \
-          GROUP_CONCAT( \
-              DISTINCT owners.name \
-              ORDER BY \
-              owners.name ASC SEPARATOR ', ' \
-          ) AS ss_owner_names \
-        FROM \
-          elements_has_owners \
-          LEFT JOIN \
-          owners ON owners.id = elements_has_owners.owners_id \
-        GROUP BY \
-          elements_id \
-      ) AS ss_owners ON ss_owners.elements_id = substations.elements_id \
-      LEFT JOIN \
-      ( \
-        SELECT \
-          elements_has_regions.elements_id, \
-          GROUP_CONCAT( \
-              DISTINCT regions.name \
-              ORDER BY \
-              regions.name ASC SEPARATOR ', ' \
-          ) AS ss_region_names \
-        FROM \
-          elements_has_regions \
-          LEFT JOIN \
-          regions ON regions.id = elements_has_regions.regions_id \
-        GROUP BY \
-          elements_id \
-      ) AS ss_regions ON ss_regions.elements_id = substations.elements_id \
-  ) AS ss_table ON ss_table.id = elements_ss_table.substations_id \
+  SELECT \
+    substations.id, \
+    substations.elements_id, \
+    elements.name, \
+    elements.voltages_id, \
+    elements.elem_num, \
+    ss_owners.ss_owner_names, \
+    ss_regions.ss_region_names \
+  FROM \
+    substations \
+  INNER JOIN \
+    elements ON substations.elements_id = elements.id \
   LEFT JOIN \
-  voltages ON voltages.id = elements_ss_table.voltages_id \
-  LEFT JOIN \
-  element_types ON element_types.id = elements_ss_table.element_types_id \
-  LEFT JOIN \
-  ( \
+    ( \
     SELECT \
       elements_has_owners.elements_id, \
       GROUP_CONCAT( \
-          DISTINCT owners.name \
-          ORDER BY \
-          owners.name ASC SEPARATOR ', ' \
-      ) AS owner_names \
+        DISTINCT owners.name \
+      ORDER BY \
+        owners.name ASC SEPARATOR ', ' \
+      ) AS ss_owner_names \
     FROM \
       elements_has_owners \
-      LEFT JOIN \
+    LEFT JOIN \
       owners ON owners.id = elements_has_owners.owners_id \
     GROUP BY \
       elements_id \
-  ) AS element_owners ON element_owners.elements_id = elements_ss_table.id \
-  LEFT JOIN \
+  ) AS ss_owners ON ss_owners.elements_id = substations.elements_id \
+LEFT JOIN \
   ( \
-    SELECT \
-      elements_has_regions.elements_id, \
-      GROUP_CONCAT( \
-          DISTINCT regions.name \
-          ORDER BY \
-          regions.name ASC SEPARATOR ', ' \
-      ) AS region_names \
-    FROM \
-      elements_has_regions \
-      LEFT JOIN \
-      regions ON regions.id = elements_has_regions.regions_id \
-    GROUP BY \
-      elements_id \
-  ) AS element_regions ON element_regions.elements_id = elements_ss_table.id";
+  SELECT \
+    elements_has_regions.elements_id, \
+    GROUP_CONCAT( \
+      DISTINCT regions.name \
+    ORDER BY \
+      regions.name ASC SEPARATOR ', ' \
+    ) AS ss_region_names \
+  FROM \
+    elements_has_regions \
+  LEFT JOIN \
+    regions ON regions.id = elements_has_regions.regions_id \
+  GROUP BY \
+    elements_id \
+) AS ss_regions ON ss_regions.elements_id = substations.elements_id \
+) AS ss_table ON ss_table.id = elements_ss_table.substations_id \
+LEFT JOIN \
+  voltages ON voltages.id = elements_ss_table.voltages_id \
+LEFT JOIN \
+  element_types ON element_types.id = elements_ss_table.element_types_id \
+LEFT JOIN \
+  ( \
+  SELECT \
+    elements_has_owners.elements_id, \
+    GROUP_CONCAT( \
+      DISTINCT owners.name \
+    ORDER BY \
+      owners.name ASC SEPARATOR ', ' \
+    ) AS owner_names \
+  FROM \
+    elements_has_owners \
+  LEFT JOIN \
+    owners ON owners.id = elements_has_owners.owners_id \
+  GROUP BY \
+    elements_id \
+) AS element_owners ON element_owners.elements_id = elements_ss_table.id \
+LEFT JOIN \
+  ( \
+  SELECT \
+    elements_has_regions.elements_id, \
+    GROUP_CONCAT( \
+      DISTINCT regions.name \
+    ORDER BY \
+      regions.name ASC SEPARATOR ', ' \
+    ) AS region_names \
+  FROM \
+    elements_has_regions \
+  LEFT JOIN \
+    regions ON regions.id = elements_has_regions.regions_id \
+  GROUP BY \
+    elements_id \
+) AS element_regions ON element_regions.elements_id = elements_ss_table.id \
+GROUP BY \
+  elements_ss_table.id \
+) AS elems_table";
     var values = [];
     var whereClause = "";
     if (whereCols.constructor === Array && whereCols.length > 0) {
         var whereSql = squel.expr();
+        //if whereCols has both ss_names and name
+        var ss_namesIndex = whereCols.indexOf("elems_table.ss_names");
+        var nameIndex = whereCols.indexOf("elems_table.name");
+        if (ss_namesIndex != -1 && nameIndex != -1) {
+            //remove columns from the AND clause
+            ss_namesIndex = whereCols.indexOf("elems_table.ss_names");
+            var ss_nameCol = whereCols.splice(ss_namesIndex, 1)[0];
+            var ss_nameOperator = whereOperators.splice(ss_namesIndex, 1)[0];
+            var ss_nameValue = whereValues.splice(ss_namesIndex, 1)[0];
+            nameIndex = whereCols.indexOf("elems_table.name");
+            var nameCol = whereCols.splice(nameIndex, 1)[0];
+            var nameOperator = whereOperators.splice(nameIndex, 1)[0];
+            var nameValue = whereValues.splice(nameIndex, 1)[0];
+            whereSql.and(squel.expr().or(vsprintf("%s %s ?", [ss_nameCol, ss_nameOperator]), ss_nameValue)
+                .or(vsprintf("%s %s ?", [nameCol, nameOperator]), nameValue));
+
+        }
+        var ss_owner_namesIndex = whereCols.indexOf("elems_table.ss_owner_names");
+        var owner_namesIndex = whereCols.indexOf("elems_table.owner_names");
+        if (ss_owner_namesIndex != -1 && owner_namesIndex != -1) {
+            //remove columns from the AND clause
+            ss_owner_namesIndex = whereCols.indexOf("elems_table.ss_owner_names");
+            var ss_owner_namesCol = whereCols.splice(ss_owner_namesIndex, 1)[0];
+            var ss_owner_namesOperator = whereOperators.splice(ss_owner_namesIndex, 1)[0];
+            var ss_owner_namesValue = whereValues.splice(ss_owner_namesIndex, 1)[0];
+            owner_namesIndex = whereCols.indexOf("elems_table.owner_names");
+            var owner_namesCol = whereCols.splice(owner_namesIndex, 1)[0];
+            var owner_namesOperator = whereOperators.splice(owner_namesIndex, 1)[0];
+            var owner_namesValue = whereValues.splice(owner_namesIndex, 1)[0];
+            whereSql.and(squel.expr().or(vsprintf("%s %s ?", [ss_owner_namesCol, ss_owner_namesOperator]), ss_owner_namesValue)
+                .or(vsprintf("%s %s ?", [owner_namesCol, owner_namesOperator]), owner_namesValue));
+        }
+        var ss_region_namesIndex = whereCols.indexOf("elems_table.ss_region_names");
+        var region_namesIndex = whereCols.indexOf("elems_table.region_names");
+        if (ss_region_namesIndex != -1 && region_namesIndex != -1) {
+            //remove columns from the AND clause
+            ss_region_namesIndex = whereCols.indexOf("elems_table.ss_region_names");
+            var ss_region_namesCol = whereCols.splice(ss_region_namesIndex, 1)[0];
+            var ss_region_namesOperator = whereOperators.splice(ss_region_namesIndex, 1)[0];
+            var ss_region_namesValue = whereValues.splice(ss_region_namesIndex, 1)[0];
+            region_namesIndex = whereCols.indexOf("elems_table.region_names");
+            var region_namesCol = whereCols.splice(region_namesIndex, 1)[0];
+            var region_namesOperator = whereOperators.splice(region_namesIndex, 1)[0];
+            var region_namesValue = whereValues.splice(region_namesIndex, 1)[0];
+            whereSql.and(squel.expr().or(vsprintf("%s %s ?", [ss_region_namesCol, ss_region_namesOperator]), ss_region_namesValue)
+                .or(vsprintf("%s %s ?", [region_namesCol, region_namesOperator]), region_namesValue));
+        }
         for (var i = 0; i < whereCols.length; i++) {
             var whereValue = whereValues[i];
             var whereOperator = whereOperators[i];
@@ -191,9 +245,8 @@ FROM \
         values = whereSql.toParam().values;
         whereClause = " WHERE (" + whereSql.toParam().text + ")";
     }
-    var groupByClause = " GROUP BY elements_ss_table.id";
     if (orderColumn == null || orderColumn.trim() == "") {
-        orderColumn = "elements_ss_table.name";
+        orderColumn = "elems_table.name";
     }
     if (order != "ASC" || order != "DESC") {
         order = "ASC";
@@ -207,9 +260,9 @@ FROM \
         offset = 100;
     }
     var limitClause = vsprintf(" LIMIT %s, %s;", [offset, limit]);
-    var sqlString = mainSql + whereClause + groupByClause + orderByClause + limitClause;
-    console.log(sqlString);
-    console.log(values);
+    var sqlString = mainSql + whereClause + orderByClause + limitClause;
+    //console.log(sqlString);
+    //console.log(values);
     tempConn.query(sqlString, values, function (err, rows) {
         if (err) return done(err);
         done(null, rows);

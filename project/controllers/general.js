@@ -6,40 +6,11 @@ router.get('/', function (req, res) {
 });
 
 router.get('/home', function (req, res) {
-    //just for testing
-    /*
-     require('../models/element').create("SUDHIR_EL", "SUDHIR_EL_DES", 9913, 1399, 1399, "Line", "1200", ["SUDHIR_OWNER", "SUDHIR_OWNER_1"], ["NO METADATA", "NO METADATA"], ["NA", "NA"], ["NR", "ER"], ["Bihar", "Assam"],["SUDHIR_SUBSTATION", "SUDHIR_SUBSTATION_1"],["1200","765"], function (err, rows) {
-     if (err) {
-     console.log(err);
-     }
-     console.log("element insertion query completed");
-     });
-     */
-    /*
-     require('../models/substation').create("SUDHIR_SUBSTATION", "NO DESCRIPTION", "400", ["SUDHIROWNER", "SUDHIR_OWNER_1"], ["SR", "NER"], ["Andhra Pradesh", "Goa"], true, function (err, rows) {
-     if (err) {
-     console.log(err);
-     }
-     console.log("substation insertion query completed");
-     });
-     */
-    /*
-     require('../models/element').elementSubstationCreate(["ACBIL", "ACBIL"], ["400", "400"], [1840, 1832], function (err, rows) {
-     if (err) {
-     console.log(err);
-     }
-     console.log(JSON.stringify(rows));
-     });
-     */
-    /*
-    require('../models/line').create("Raichur-Solapur", "No Description", "765", "Hexa Zebra", 1992, 1, 700, 500, ["PGCIL"], ["WR", "SR"], ["Andhra Pradesh", "Karnataka"], ["Raichur", "Solapur"], ["765", "765"], true, function (err, rows) {
-        if (err) {
-            console.log(err);
-        }
-        console.log(JSON.stringify(rows));
-    });
-    */
     res.render('home', {user: req.user});
+});
+
+router.get('/query', function (req, res) {
+    res.render('query-home', {user: req.user});
 });
 
 module.exports = router;
