@@ -4,18 +4,21 @@ window.onload = function () {
         responsive: true,
         "data": data,
         "order": [[1, "asc"]],
+        "lengthMenu": [ [10, 25, 50, 100, 200, 500, 800, 1000, 1500, 1800, -1], [10, 25, 50, 100, 200, 500, 800, 1000, 1500, 1800, "All"] ],
         "columns": [
             {"data": "id"},
             {"data": "name"},
             {"data": "description"},
             {"data": "type"},
             {"data": "level"},
-            {"data": "owner_names"},
-            {"data": "region_names"},
-            {"data": "ss_names"},
+            {"data": "el_owners_list"},
+            {"data": "el_regions_list"},
+            {"data": "el_states_list"},
+            {"data": "ss_names_list"},
             {"data": "elem_num"},
-            {"data": "ss_owner_names"},
-            {"data": "ss_region_names"}
+            {"data": "ss_owners_list"},
+            {"data": "ss_regions_list"},
+            {"data": "ss_states_list"}
         ]
     });
     refreshTableData();

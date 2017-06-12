@@ -18,7 +18,7 @@ router.get('/', function (req, res, next) {
     var rows_offset = 0;
 
     if (typeof name_str != 'undefined' && name_str.trim() != "") {
-        whereCols.push('elems_table.ss_names');
+        whereCols.push('elems_table.ss_names_list');
         whereOperators.push('LIKE');
         whereValues.push("%" + name_str + "%");
         whereCols.push('elems_table.name');
@@ -26,18 +26,18 @@ router.get('/', function (req, res, next) {
         whereValues.push("%" + name_str + "%");
     }
     if (typeof owner != 'undefined' && owner.trim() != "") {
-        whereCols.push('elems_table.owner_names');
+        whereCols.push('elems_table.el_owners_list');
         whereOperators.push('LIKE');
         whereValues.push("%" + owner + "%");
-        whereCols.push('elems_table.ss_owner_names');
+        whereCols.push('elems_table.ss_owners_list');
         whereOperators.push('LIKE');
         whereValues.push("%" + owner + "%");
     }
     if (typeof region != 'undefined' && region.trim() != "") {
-        whereCols.push('elems_table.region_names');
+        whereCols.push('elems_table.el_regions_list');
         whereOperators.push('LIKE');
         whereValues.push("%" + region + "%");
-        whereCols.push('elems_table.ss_region_names');
+        whereCols.push('elems_table.ss_regions_list');
         whereOperators.push('LIKE');
         whereValues.push("%" + region + "%");
     }
