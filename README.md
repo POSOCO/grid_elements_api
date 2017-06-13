@@ -138,6 +138,7 @@ serious bug (A-B, B-A bug also will be present)
 12. Create UI for FSCs and TCSCs
 13. Solve the line name bug (trying to insert B-A if A-B is already present) -- done
 14. Make all names either capital/small/sentence case, preferably capital
+15. Do the line controller get all function
 
 ## Links
 1. Google Docs page ---> https://docs.google.com/document/d/1xqxND1KHwLpGc3jCcYlq9GWiVnqFbHW_GvWrCmRioVY/edit?usp=sharing

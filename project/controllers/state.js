@@ -8,7 +8,7 @@ router.get('/', function (req, res, next) {
         if (err) {
             return next(err);
         }
-        res.json({'states': rows});
+        res.json({'data': rows});
     });
 });
 

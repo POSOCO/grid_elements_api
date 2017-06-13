@@ -4,7 +4,7 @@ window.onload = function () {
         responsive: true,
         "data": data,
         "order": [[1, "asc"]],
-        "lengthMenu": [ [10, 25, 50, 100, 200, 500, 800, 1000, 1500, 1800, -1], [10, 25, 50, 100, 200, 500, 800, 1000, 1500, 1800, "All"] ],
+        "lengthMenu": [[10, 25, 50, 100, 200, 500, 800, 1000, 1500, 1800, -1], [10, 25, 50, 100, 200, 500, 800, 1000, 1500, 1800, "All"]],
         "columns": [
             {"data": "id"},
             {"data": "name"},
@@ -25,6 +25,7 @@ window.onload = function () {
     getTypesFromServer();
     getVoltagesFromServer();
     getRegionsFromServer();
+    getStatesFromServer();
 };
 
 function refreshTableData() {
@@ -35,6 +36,7 @@ function refreshTableData() {
         voltage: document.getElementById("volt_level_search_str").value,
         type: document.getElementById("type_search_str").value,
         region: document.getElementById("region_search_str").value,
+        stateStr: document.getElementById("state_search_str").value,
         limit_rows: document.getElementById("server_rows_limit_input").value,
         offset_page: document.getElementById("server_rows_page_input").value
     };
@@ -107,7 +109,7 @@ function getVoltagesFromServer() {
     });
 }
 
-function getRegionsFromServer(){
+function getRegionsFromServer() {
     $.ajax({
         url: "/api/regions/",
         type: 'GET',
@@ -122,6 +124,32 @@ function getRegionsFromServer(){
                     appendOptionsToSelectBox("region_search_str", dataArray[i].name, dataArray[i].name);
                 }
                 $('#region_search_str').selectpicker('refresh');
+            }
+        },
+        error: function (textStatus, errorThrown) {
+            console.log(textStatus);
+            console.log(errorThrown);
+        }
+    });
+}
+
+function getStatesFromServer() {
+    $.ajax({
+        url: "/api/states/",
+        type: 'GET',
+        success: function (result) {
+            //toastr["info"]("Data received from server");
+            console.log(result);
+            var dataArray = result.data;
+            if (typeof dataArray != 'undefined' && dataArray != null && dataArray.constructor === Array && dataArray.length > 0) {
+                document.getElementById('state_search_str').innerHTML = "";
+                appendOptionsToSelectBox("state_search_str", "", "-- Please select --");
+                for (var i = 0; i < dataArray.length; i++) {
+                    if (dataArray[i].name.trim() != "") {
+                        appendOptionsToSelectBox("state_search_str", dataArray[i].name, dataArray[i].name);
+                    }
+                }
+                $('#state_search_str').selectpicker('refresh');
             }
         },
         error: function (textStatus, errorThrown) {

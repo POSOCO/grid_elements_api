@@ -3,6 +3,8 @@ var router = express.Router();
 var Line = require('../models/line.js');
 var async = require("async");
 
+//todo getAll function
+
 router.post('/create_from_csv', function (req, res, next) {
     //var name = req.body["name"];
     var voltage = req.body["voltage"];

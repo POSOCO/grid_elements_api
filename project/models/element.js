@@ -390,7 +390,7 @@ FROM \
     var whereClause = "";
     if (whereCols.constructor === Array && whereCols.length > 0) {
         var whereSql = squel.expr();
-        //if whereCols has both ss_names and name
+        // if whereCols has both ss_names and name
         var ss_namesIndex = whereCols.indexOf("elems_table.ss_names_list");
         var nameIndex = whereCols.indexOf("elems_table.name");
         if (ss_namesIndex != -1 && nameIndex != -1) {
@@ -407,6 +407,7 @@ FROM \
                 .or(vsprintf("%s %s ?", [nameCol, nameOperator]), nameValue));
 
         }
+        // if whereCols has both ss_owners_list and el_owners_list
         var ss_owner_namesIndex = whereCols.indexOf("elems_table.ss_owners_list");
         var owner_namesIndex = whereCols.indexOf("elems_table.el_owners_list");
         if (ss_owner_namesIndex != -1 && owner_namesIndex != -1) {
@@ -422,6 +423,7 @@ FROM \
             whereSql.and(squel.expr().or(vsprintf("%s %s ?", [ss_owner_namesCol, ss_owner_namesOperator]), ss_owner_namesValue)
                 .or(vsprintf("%s %s ?", [owner_namesCol, owner_namesOperator]), owner_namesValue));
         }
+        // if whereCols has both ss_regions_list and el_regions_list
         var ss_region_namesIndex = whereCols.indexOf("elems_table.ss_regions_list");
         var region_namesIndex = whereCols.indexOf("elems_table.el_regions_list");
         if (ss_region_namesIndex != -1 && region_namesIndex != -1) {
@@ -436,6 +438,22 @@ FROM \
             var region_namesValue = whereValues.splice(region_namesIndex, 1)[0];
             whereSql.and(squel.expr().or(vsprintf("%s %s ?", [ss_region_namesCol, ss_region_namesOperator]), ss_region_namesValue)
                 .or(vsprintf("%s %s ?", [region_namesCol, region_namesOperator]), region_namesValue));
+        }
+        // if whereCols has both ss_states_list and el_states_list
+        var ss_state_namesIndex = whereCols.indexOf("elems_table.ss_states_list");
+        var state_namesIndex = whereCols.indexOf("elems_table.el_states_list");
+        if (ss_state_namesIndex != -1 && state_namesIndex != -1) {
+            //remove columns from the AND clause
+            ss_state_namesIndex = whereCols.indexOf("elems_table.ss_states_list");
+            var ss_state_namesCol = whereCols.splice(ss_state_namesIndex, 1)[0];
+            var ss_state_namesOperator = whereOperators.splice(ss_state_namesIndex, 1)[0];
+            var ss_state_namesValue = whereValues.splice(ss_state_namesIndex, 1)[0];
+            state_namesIndex = whereCols.indexOf("elems_table.el_states_list");
+            var state_namesCol = whereCols.splice(state_namesIndex, 1)[0];
+            var state_namesOperator = whereOperators.splice(state_namesIndex, 1)[0];
+            var state_namesValue = whereValues.splice(state_namesIndex, 1)[0];
+            whereSql.and(squel.expr().or(vsprintf("%s %s ?", [ss_state_namesCol, ss_state_namesOperator]), ss_state_namesValue)
+                .or(vsprintf("%s %s ?", [state_namesCol, state_namesOperator]), state_namesValue));
         }
         for (var i = 0; i < whereCols.length; i++) {
             var whereValue = whereValues[i];

@@ -12,6 +12,7 @@ router.get('/', function (req, res, next) {
     var type = req.query.type;
     var owner = req.query.owner;
     var region = req.query.region;
+    var stateStr = req.query.stateStr;
     var volt = req.query.voltage;
     var name_str = req.query.name;
 
@@ -40,6 +41,14 @@ router.get('/', function (req, res, next) {
         whereCols.push('elems_table.ss_regions_list');
         whereOperators.push('LIKE');
         whereValues.push("%" + region + "%");
+    }
+    if (typeof stateStr != 'undefined' && stateStr.trim() != "") {
+        whereCols.push('elems_table.el_states_list');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + stateStr + "%");
+        whereCols.push('elems_table.ss_states_list');
+        whereOperators.push('LIKE');
+        whereValues.push("%" + stateStr + "%");
     }
     if (typeof volt != 'undefined' && volt.trim() != "") {
         whereCols.push('elems_table.level');
