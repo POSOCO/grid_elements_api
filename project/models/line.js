@@ -672,5 +672,4 @@ FROM \
     });
 };
 
-
 exports.creationSQL = creationSQL;
